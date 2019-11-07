@@ -1,0 +1,1 @@
+clone the repo using: git clone https://github.com/shanu-sh/pastry.git
