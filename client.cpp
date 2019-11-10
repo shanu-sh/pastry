@@ -8,8 +8,37 @@
 #include<arpa/inet.h>
 #include<vector>
 #include<cmath>
+#include<bits/stdc++.h>
+#include <netdb.h>
+#include <ifaddrs.h>
+#include"md5.h"
+#define INET_ADDRSTRLEN 16
+
 
 using namespace std;
+std::string extractPublicIP(){
+    struct ifaddrs *ifaddr, *ifa;
+    int family, s, n;
+    char host[INET_ADDRSTRLEN];
+
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs");
+        exit(EXIT_FAILURE);
+    }
+    ifa = ifaddr;
+    while(ifa!= NULL){
+        if(ifa->ifa_addr == NULL)
+            continue;
+
+        if((ifa->ifa_addr->sa_family == AF_INET) && strcmp(ifa->ifa_name,"wlp2s0") == 0){
+            s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, INET_ADDRSTRLEN, NULL, 0, NI_NUMERICHOST);
+            // std::cout<<host<<"\n";
+        }
+        ifa = ifa->ifa_next;
+    }
+    cout<<string(host)<<endl;
+    return std::string(host);
+}
 
 struct node_data
 {
@@ -45,7 +74,7 @@ std::vector<struct node_data> getneighbour()
     return neighbourhoodset;
 }
 
-struct node_structur{
+struct node_structure{
     string ip;
     string port;
     string nodeid;
@@ -54,9 +83,10 @@ struct node_structur{
     vector<vector<struct node_data>> routing_table=get_table();
     std::vector<struct node_data> leafset=getleaf();
     std::vector<struct node_data> neighbourhoodset=getneighbour();
+    unordered_map<string,string>local_hashtable;
 };
 
-
+struct node_structure node_obj;
 int b;
 #define BUFFSIZE 512
 
@@ -96,7 +126,7 @@ void *server(void * arg)
     int sockid=socket(AF_INET,SOCK_STREAM,0);
     int len,cid;
 
-    struct host_data *data=(struct node_data*)arg;
+    struct node_data *data=(struct node_data*)arg;
     struct sockaddr_in addr;
 
     addr.sin_family=AF_INET;
@@ -119,58 +149,33 @@ void *server(void * arg)
 
 int main(int argc,char **argv)
 {
-    bool bootstrapnode=false;
-    string new_ip;
-    string new_port;
     
-    string node_ip;
-    string node_port;
-
-    string choice;
-
-    b=2;
-    int entry=pow(2,b);
-
-    if(argc<3)
-    {
-        cout<<"Please enter 3 arguments\n";
-        return 1;
-    }
-
-    if(argc==3)
-    {
-        bootstrapnode=true;
-        new_ip=argv[1];
-        new_port=argv[2];
-    }
-    else if(argc==5)
-    {
-        bootstrapnode=false;
-        new_ip=argv[1];
-        new_port=argv[2];
-        node_ip=argv[3];
-        node_port=argv[4];
-    }
-
     pthread_t id;
     int data;
+    string choice;
 
-    pthread_create(&id,NULL,server,(void*)&data);
-    pthread_detach(id);
+    //pthread_create(&id,NULL,server,(void*)&data);
+    //pthread_detach(id);
 
-    if(bootstrapnode)
-    {
-        vector<node_data> temp(entry);
-    }
-    else
-    {
-        /* code */
-    }
+    
     
 
     while(1)
     {
         cin>>choice;
+        if(choice.compare("port")==0)
+        {
+            string input_port;
+            cin>>input_port;
+            string input_ip=extractPublicIP();
+            node_obj.port=input_port;
+            node_obj.ip=input_ip;
+            node_obj.nodeid=generate_md5(input_ip+input_port);
+            cout<<" IP is :"<<input_ip<<endl;
+            cout<<"port is : "<<input_port<<endl;
+            cout<<" node_id is:"<<node_obj.nodeid<<endl;
+
+        }
 
         
     }
