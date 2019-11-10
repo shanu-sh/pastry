@@ -30,7 +30,7 @@ std::string extractPublicIP(){
         if(ifa->ifa_addr == NULL)
             continue;
 
-        if((ifa->ifa_addr->sa_family == AF_INET) && strcmp(ifa->ifa_name,"wlp2s0") == 0){
+        if((ifa->ifa_addr->sa_family == AF_INET) && ifa->ifa_name[0] == 'w'){
             s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, INET_ADDRSTRLEN, NULL, 0, NI_NUMERICHOST);
             // std::cout<<host<<"\n";
         }
