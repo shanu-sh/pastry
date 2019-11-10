@@ -1,1 +1,4 @@
-clone the repo using: git clone https://github.com/shanu-sh/pastry.git
+A simple DHT overlay newtwork.
+
+Contributors
+Upinder Singh
