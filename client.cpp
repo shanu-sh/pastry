@@ -46,6 +46,7 @@ struct node_data
     string ip;
     string port;
 };
+
 struct node_data getdefaul_node()
 {
     struct node_data defaul;
@@ -56,11 +57,11 @@ struct node_data getdefaul_node()
 
 }
 
- vector<vector<struct node_data>> get_table()
- {
-    vector<vector<struct node_data>>v(8,vector<struct node_data>(16,getdefaul_node()));
+vector<vector<struct node_data>> get_table()
+{
+    vector<vector<struct node_data>> v(8,vector<struct node_data>(16,getdefaul_node()));
     return  v;
- }
+}
 
 std::vector<struct node_data> getleaf()
 {
@@ -157,9 +158,6 @@ int main(int argc,char **argv)
     //pthread_create(&id,NULL,server,(void*)&data);
     //pthread_detach(id);
 
-    
-    
-
     while(1)
     {
         cin>>choice;
@@ -170,13 +168,16 @@ int main(int argc,char **argv)
             string input_ip=extractPublicIP();
             node_obj.port=input_port;
             node_obj.ip=input_ip;
-            node_obj.nodeid=generate_md5(input_ip+input_port);
+            node_obj.nodeid=generate_md5(input_ip+input_port).substr(0,8);
             cout<<" IP is :"<<input_ip<<endl;
             cout<<"port is : "<<input_port<<endl;
             cout<<" node_id is:"<<node_obj.nodeid<<endl;
 
         }
 
-        
+        if(choice.compare("create")==0)
+        {
+            //populatestate();
+        }
     }
 }
