@@ -27,7 +27,8 @@ struct node_data getdefaul_node()
 
 }
 
- vector<vector<struct node_data>> get_table(){
+ vector<vector<struct node_data>> get_table()
+ {
     vector<vector<struct node_data>>v(8,vector<struct node_data>(16,getdefaul_node()));
     return  v;
  }
@@ -53,16 +54,67 @@ struct node_structur{
     vector<vector<struct node_data>> routing_table=get_table();
     std::vector<struct node_data> leafset=getleaf();
     std::vector<struct node_data> neighbourhoodset=getneighbour();
-    
-
-
-
 };
+
+
 int b;
+#define BUFFSIZE 512
+
+void processrequest(int cid)
+{
+    int command;
+    recv(cid,( void*)&command,sizeof(command),0);
+
+    char buffer[BUFFSIZE];
+
+    if(command==0)
+    {
+        //pastryInit
+    }
+    else if(command==1)
+    {
+        //route(msg,key)
+    }
+    else if(command==2)
+    {
+        //deliver(msg,key)
+    }
+    else if(command==3)
+    {
+        //forward(msg,key,nextId)
+    }
+    else if(command==4)
+    {
+        //newLeafs(leafSet)
+    }
+}
 
 void *server(void * arg)
 {
+    //server started
 
+    int sockid=socket(AF_INET,SOCK_STREAM,0);
+    int len,cid;
+
+    struct host_data *data=(struct node_data*)arg;
+    struct sockaddr_in addr;
+
+    addr.sin_family=AF_INET;
+    addr.sin_port=htons(stoi(data->port));
+    addr.sin_addr.s_addr=inet_addr(data->ip.c_str());
+
+    len=sizeof(addr);
+    bind(sockid,(struct sockaddr*)&addr,sizeof(addr));
+
+    listen(sockid,3);
+
+    int count=0;
+
+    while(1)
+    {
+        cid=accept(sockid,(struct sockaddr*)&addr,(socklen_t*)&len);
+        processrequest(cid);   
+    }
 }
 
 int main(int argc,char **argv)
