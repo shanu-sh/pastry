@@ -11,6 +11,8 @@
 #include<bits/stdc++.h>
 #include <netdb.h>
 #include <ifaddrs.h>
+#include<sstream>
+
 #include"md5.h"
 #define INET_ADDRSTRLEN 16
 
@@ -50,9 +52,9 @@ struct node_data
 struct node_data getdefaul_node()
 {
     struct node_data defaul;
-    defaul.nodeid="...";
-    defaul.ip=".";
-    defaul.port="..";
+    defaul.nodeid="-1";
+    defaul.ip="-2";
+    defaul.port="-3";
     return defaul;
 
 }
@@ -148,6 +150,37 @@ void *server(void * arg)
     }
 }
 
+void populatestate()
+{
+    int i=0,j;
+    
+    while(i<8)
+    {
+        stringstream ss;
+
+        struct node_data temp;
+
+        temp.ip=node_obj.ip;
+        temp.nodeid=node_obj.nodeid;
+        temp.port=node_obj.port;
+
+        ss<<std::hex<<temp.nodeid[i]<<" ";
+        ss>>j;
+        node_obj.routing_table[i][j]=temp;
+        i++;
+    }
+
+    for(i =0;i<8;i++)
+    {
+        for(j=0;j<16;j++)
+        {
+            cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" \t";
+        }
+        cout<<"\n";
+    }
+   
+}
+
 int main(int argc,char **argv)
 {
     
@@ -155,8 +188,6 @@ int main(int argc,char **argv)
     int data;
     string choice;
 
-    //pthread_create(&id,NULL,server,(void*)&data);
-    //pthread_detach(id);
 
     while(1)
     {
@@ -177,7 +208,9 @@ int main(int argc,char **argv)
 
         if(choice.compare("create")==0)
         {
-            //populatestate();
+            populatestate();
+            //pthread_create(&id,NULL,server,(void*)&data);
+            //pthread_detach(id);
         }
     }
 }
