@@ -11,6 +11,8 @@
 #include<bits/stdc++.h>
 #include <netdb.h>
 #include <ifaddrs.h>
+#include<sstream>
+
 #include"md5.h"
 #define INET_ADDRSTRLEN 16
 
@@ -46,21 +48,22 @@ struct node_data
     string ip;
     string port;
 };
+
 struct node_data getdefaul_node()
 {
     struct node_data defaul;
-    defaul.nodeid="...";
-    defaul.ip=".";
-    defaul.port="..";
+    defaul.nodeid="-1";
+    defaul.ip="-2";
+    defaul.port="-3";
     return defaul;
 
 }
 
- vector<vector<struct node_data>> get_table()
- {
-    vector<vector<struct node_data>>v(8,vector<struct node_data>(16,getdefaul_node()));
+vector<vector<struct node_data>> get_table()
+{
+    vector<vector<struct node_data>> v(8,vector<struct node_data>(16,getdefaul_node()));
     return  v;
- }
+}
 
 std::vector<struct node_data> getleaf()
 {
@@ -147,6 +150,37 @@ void *server(void * arg)
     }
 }
 
+void populatestate()
+{
+    int i=0,j;
+    
+    while(i<8)
+    {
+        stringstream ss;
+
+        struct node_data temp;
+
+        temp.ip=node_obj.ip;
+        temp.nodeid=node_obj.nodeid;
+        temp.port=node_obj.port;
+
+        ss<<std::hex<<temp.nodeid[i]<<" ";
+        ss>>j;
+        node_obj.routing_table[i][j]=temp;
+        i++;
+    }
+
+    for(i =0;i<8;i++)
+    {
+        for(j=0;j<16;j++)
+        {
+            cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" \t";
+        }
+        cout<<"\n";
+    }
+   
+}
+
 int main(int argc,char **argv)
 {
     
@@ -154,11 +188,6 @@ int main(int argc,char **argv)
     int data;
     string choice;
 
-    //pthread_create(&id,NULL,server,(void*)&data);
-    //pthread_detach(id);
-
-    
-    
 
     while(1)
     {
@@ -170,13 +199,18 @@ int main(int argc,char **argv)
             string input_ip=extractPublicIP();
             node_obj.port=input_port;
             node_obj.ip=input_ip;
-            node_obj.nodeid=generate_md5(input_ip+input_port);
+            node_obj.nodeid=generate_md5(input_ip+input_port).substr(0,8);
             cout<<" IP is :"<<input_ip<<endl;
             cout<<"port is : "<<input_port<<endl;
             cout<<" node_id is:"<<node_obj.nodeid<<endl;
 
         }
 
-        
+        if(choice.compare("create")==0)
+        {
+            populatestate();
+            //pthread_create(&id,NULL,server,(void*)&data);
+            //pthread_detach(id);
+        }
     }
 }
