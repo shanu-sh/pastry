@@ -279,6 +279,70 @@ void sendrequest(string message,string buddy_ip,string buddy_port,int control)
     send(sockid,(const void*)data,sizeof(data),0);
 }
 
+struct node_data routing(struct node_data requesting_node){
+    
+    struct node_data requesting_node_leaf = isleaf(requesting_node); 
+    if( requesting_node_leaf.nodeid.compare("-1")!=0){
+        return requesting_node_leaf;
+    }
+    else{
+        int i=0;
+        for( i=0;i<8;i++){
+            if(node_obj.nodeid[i].compare(requesting_node.nodeid[i])!=0){
+                break;
+            }
+
+        }
+
+        stringstream ss;
+        int hexval;
+        
+        string requesting_node_id=requesting_node.nodeid;
+        
+
+        ss<<std::hex<<requesting_node_id[i]<<" ";
+        ss>>hexval;
+        
+
+        if(node_obj.routing_table[i][hexval].nodeid.compare("-1")!=0){
+            return node_obj.routing_table[i][hexval] ;
+        }
+        else{
+            int flag=0;
+            int difference_min;
+            int position;
+            for(int j=0;j<16;j++) {
+                if(node_obj.routing_table[i][hexval].nodeid.compare("-1")!=0) {
+                     stringstream ss1,ss2;
+                     int hexval1,hexval2;
+        
+                     string requesting_node_id=requesting_node.nodeid;
+                     string routing_table_id=node_obj.routing_table.nodeid;
+        
+                    ss1<<std::hex<<requesting_node_id<<" ";
+                    ss1>>hexval1;
+                    ss2<<std::hex<<routing_table_id<<" ";
+                    ss1>>hexval2;
+                    if(flag==0) { 
+                        difference_min = abs(hexval1-hexval2);
+                         position = j; 
+                    }
+                    else{
+                        int  new_min = abs(hexval1-hexval2);
+                        if(new_min < difference_min) { 
+                            difference_min = new_min;
+                            position = j; 
+                        }
+                    }
+                }
+                   
+            }
+        }
+    }
+
+
+
+}
 
 int main(int argc,char **argv)
 {
