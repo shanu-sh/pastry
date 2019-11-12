@@ -15,8 +15,9 @@
 
 #include"md5.h"
 #include"splitstring.h"
-#define INET_ADDRSTRLEN 16
 
+#define INET_ADDRSTRLEN 16
+#define BUFFSIZE 8092
 
 using namespace std;
 std::string extractPublicIP(){
@@ -60,6 +61,9 @@ struct node_data getdefaul_node()
 
 }
 
+struct node_data routing(struct node_data requesting_node);
+void sendrequest(string message,string buddy_ip,string buddy_port,int control);
+
 vector<vector<struct node_data>> get_table()
 {
     vector<vector<struct node_data>> v(8,vector<struct node_data>(16,getdefaul_node()));
@@ -93,7 +97,7 @@ struct node_structure{
 struct node_structure node_obj;
 void printroutable(struct node_structure node_obj);
 int b;
-#define BUFFSIZE 512
+
 // function to serialize state tables
 void printvec(std::vector<string> v)
 {
@@ -197,35 +201,44 @@ void deserialize_tables(string serialstring)
 
     }
     cout<<"printing in deserialize"<<endl;
-    printroutable(temp);
+    //printroutable(temp);
 
 }
-/*void processrequest(int cid)
+void processrequest(int cid)
 {
     int command;
     recv(cid,( void*)&command,sizeof(command),0);
 
+    cout<<"Command recv in server is "<<command<<"\n";
     char buffer[BUFFSIZE];
 
     if(command==0)
     {
         //pastry node joining
 
+        cout<<"Received join request\n";
         struct node_data nodedata;
         recv(cid,buffer,BUFFSIZE,0);
         stringstream ss(buffer);
         ss>>nodedata.nodeid>>nodedata.ip>>nodedata.port;
 
+        cout<<"Buffer is "<<buffer<<"\n";
         struct node_data final_node=routing(nodedata);
         
+        string temp="";
+        
+        //sendrequest(temp,nodedata.ip,nodedata.port,1);
+
         if(final_node.nodeid==node_obj.nodeid)
         {
+            cout<<"Self node\n";
             string temp=serialize_tables(node_obj);
             sendrequest(temp,nodedata.ip,nodedata.port,1);
         }
 
         else
         {
+            cout<<"other\n";
             string temp=serialize_tables(node_obj);
             sendrequest(temp,nodedata.ip,nodedata.port,1);
 
@@ -238,7 +251,7 @@ void deserialize_tables(string serialstring)
     else if(command==1)
     {
         //update your table
-        
+        cout<<"Recieved reques for updating table\n";
     }
     else if(command==2)
     {
@@ -260,8 +273,8 @@ void *server(void * arg)
     //server started
 
     int sockid=socket(AF_INET,SOCK_STREAM,0);
-    int len,cid;
-
+    int len=10,cid;
+    cout<<node_obj.port<<"\n";
     struct sockaddr_in addr;
 
     addr.sin_family=AF_INET;
@@ -340,7 +353,7 @@ struct node_data isleaf(struct node_data node)
         }
     }
     return res;
-}*/
+}
 
 void populatestate()
 {
@@ -374,7 +387,7 @@ void populatestate()
 }
 
 
-/*void sendrequest(string message,string buddy_ip,string buddy_port,int control)
+void sendrequest(string message,string buddy_ip,string buddy_port,int control)
 {
     int sockid,status;
     string temp="";
@@ -386,6 +399,7 @@ void populatestate()
         return;
     }
 
+    cout<<"Buddy port "<<buddy_port<<"\n";
     struct sockaddr_in serveraddr;
     serveraddr.sin_family=AF_INET;
     serveraddr.sin_port=htons(stoi(buddy_port));
@@ -401,8 +415,8 @@ void populatestate()
 
     send(sockid,(const void*)&control,sizeof(control),0);
     char data[BUFFSIZE];
-    strcpy(data,temp.c_str());
-    send(sockid,(const void*)data,sizeof(data),0);
+    strcpy(data,message.c_str());
+    send(sockid,(const void*)data,BUFFSIZE,0);
 }
 
 struct node_data routing(struct node_data requesting_node){
@@ -465,10 +479,7 @@ struct node_data routing(struct node_data requesting_node){
             }
         }
     }
-
-
-
-}*/
+}
 void printroutable(struct node_structure node_obj)
 {
     for(int i =0;i<8;i++)
@@ -509,8 +520,8 @@ int main(int argc,char **argv)
         {
             populatestate();
             int temp=0;
-            //pthread_create(&id,NULL,server,(void*)&temp);
-            //pthread_detach(id);
+            pthread_create(&id,NULL,server,(void*)&temp);
+            pthread_detach(id);
         }
 
         if(choice.compare("join")==0)
@@ -518,17 +529,19 @@ int main(int argc,char **argv)
             string buddy_ip,buddy_port,temp;
             cin>>buddy_ip>>buddy_port;
             temp=node_obj.nodeid+" "+node_obj.ip+" "+node_obj.port;
-            //sendrequest(temp,buddy_ip,buddy_port,0);
+            cout<<"temp is "<<temp<<"\n";
+            sendrequest(temp,buddy_ip,buddy_port,0);
         }
         if(choice.compare("serialize")==0)
-            {
-                string a=serialize_tables(node_obj);
-                cout<<"a is "<<a;
-                deserialize_tables(a);
-            }
+        {
+            string a=serialize_tables(node_obj);
+            cout<<"a is "<<a;
+            deserialize_tables(a);
+        }
         if(choice.compare("printroutable")==0)
-            {
-                printroutable(node_obj);
-            }
+        {
+            //printroutable(node_obj);
+        }
+        
     }
 }
