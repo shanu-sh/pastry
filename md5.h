@@ -1,8 +1,6 @@
-#include <stdio.h>
-#include <string.h>
 #include <openssl/md5.h>
-#include<iostream>
-#include<string.h>
+#include <iostream>
+#include <string.h>
 using namespace std;
 
 string generate_md5(string s){
