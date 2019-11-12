@@ -87,7 +87,7 @@ struct node_structure{
     vector<vector<struct node_data>> routing_table=get_table();
     std::vector<struct node_data> leafset=getleaf();
     std::vector<struct node_data> neighbourhoodset=getneighbour();
-    unordered_map<string,string>local_hashtable;
+    unordered_map<string,string> local_hashtable;
 };
 
 struct node_structure node_obj;
@@ -206,17 +206,34 @@ void processrequest(int cid)
         stringstream ss(buffer);
         ss>>nodedata.nodeid>>nodedata.ip>>nodedata.port;
 
-        //struct node_data final_node=route(nodedata);
-        //
+        struct node_data final_node=routing(nodedata);
+        
+        if(final_node.nodeid==node_obj.nodeid)
+        {
+            string temp=serialize_tables(node_obj);
+            sendrequest(temp,nodedata.ip,nodedata.port,1);
+        }
+
+        else
+        {
+            string temp=serialize_tables(node_obj);
+            sendrequest(temp,nodedata.ip,nodedata.port,1);
+
+            string data(buffer);
+            sendrequest(data,final_node.ip,final_node.port,2);   
+        }
+        
 
     }
     else if(command==1)
     {
-        //route(msg,key)
+        //update your table
+        
     }
     else if(command==2)
     {
-        //deliver(msg,key)
+        //Handle join request
+
     }
     else if(command==3)
     {
