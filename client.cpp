@@ -149,6 +149,66 @@ void *server(void * arg)
     }
 }
 
+struct node_data isleaf(node_data node)
+{
+    int i,j,id,mdiff,temp;
+    int lower=-1,upper=-1;
+
+    node_data default_node=getdefaul_node();
+    node_data res;
+
+    stringstream ss;
+
+    for(auto x:node_obj.leafset)
+    {
+        if(x.nodeid.compare(default_node.nodeid)!=0)
+        {
+            if(lower==-1)
+            {
+                ss<<hex<<x.nodeid;
+                ss>>i;
+                lower=1;
+                upper=1;
+                j=i;
+            }
+            else if(lower==1)
+            {
+                ss<<hex<<x.nodeid;
+                ss>>j;
+            }
+        }
+    }
+
+    if(lower ==-1 && upper==-1)
+        return default_node;
+
+    ss<<hex<<node.nodeid;
+    ss>>id;
+
+    if(id>=i&&id<=j)
+    {
+        res.ip=node_obj.ip;
+        res.nodeid=node_obj.nodeid;
+        res.port=node_obj.port;
+
+        ss<<hex<<res.nodeid;
+        ss>>temp;
+        mdiff=abs(temp-id);
+        
+        for(auto x:node_obj.leafset)
+        {
+            ss<<hex<<x.nodeid;
+            ss>>temp;
+            if(abs(id-temp)<mdiff)
+            {
+                mdiff=abs(id-temp);
+                res=x;
+            }
+        }
+    }
+    return res;
+}
+
 void populatestate()
 {
     int i=0,j;
@@ -163,7 +223,7 @@ void populatestate()
         temp.nodeid=node_obj.nodeid;
         temp.port=node_obj.port;
 
-        ss<<std::hex<<temp.nodeid[i]<<" ";
+        ss<<hex<<temp.nodeid[i];
         ss>>j;
         node_obj.routing_table[i][j]=temp;
         i++;
@@ -211,6 +271,11 @@ int main(int argc,char **argv)
             int temp=0;
             pthread_create(&id,NULL,server,(void*)&temp);
             pthread_detach(id);
+        }
+        if(choice.compare("join")==0)
+        {
+            string buddy_ip,buddy_port;
+            cin>>buddy_ip>>buddy_port;
         }
     }
 }
