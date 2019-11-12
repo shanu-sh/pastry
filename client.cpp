@@ -32,7 +32,7 @@ std::string extractPublicIP(){
         if(ifa->ifa_addr == NULL)
             continue;
 
-        if((ifa->ifa_addr->sa_family == AF_INET) && ifa->ifa_name[0] == 'w'){
+        if((ifa->ifa_addr->sa_family == AF_INET) && (ifa->ifa_name[0] == 'w' || ifa->ifa_name[0] == 'e')){
             s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, INET_ADDRSTRLEN, NULL, 0, NI_NUMERICHOST);
             // std::cout<<host<<"\n";
         }
@@ -129,12 +129,11 @@ void *server(void * arg)
     int sockid=socket(AF_INET,SOCK_STREAM,0);
     int len,cid;
 
-    struct node_data *data=(struct node_data*)arg;
     struct sockaddr_in addr;
 
     addr.sin_family=AF_INET;
-    addr.sin_port=htons(stoi(data->port));
-    addr.sin_addr.s_addr=inet_addr(data->ip.c_str());
+    addr.sin_port=htons(stoi(node_obj.port));
+    addr.sin_addr.s_addr=inet_addr(node_obj.ip.c_str());
 
     len=sizeof(addr);
     bind(sockid,(struct sockaddr*)&addr,sizeof(addr));
@@ -209,8 +208,9 @@ int main(int argc,char **argv)
         if(choice.compare("create")==0)
         {
             populatestate();
-            //pthread_create(&id,NULL,server,(void*)&data);
-            //pthread_detach(id);
+            int temp=0;
+            pthread_create(&id,NULL,server,(void*)&temp);
+            pthread_detach(id);
         }
     }
 }
