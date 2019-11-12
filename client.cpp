@@ -424,9 +424,11 @@ struct node_data routing(struct node_data requesting_node){
     
     struct node_data requesting_node_leaf = isleaf(requesting_node); 
     if( requesting_node_leaf.nodeid.compare("-1")!=0){
+        cout<<"in leaf\n";
         return requesting_node_leaf;
     }
     else{
+        cout<<"Not in leaf\n";
         int i=0;
         for( i=0;i<8;i++){
             if(node_obj.nodeid[i]!=requesting_node.nodeid[i]){
@@ -446,9 +448,14 @@ struct node_data routing(struct node_data requesting_node){
         
 
         if(node_obj.routing_table[i][hexval].nodeid.compare("-1")!=0){
+            cout<<"Found in routing table\n";
+
+            cout<<"Value is "<<node_obj.routing_table[i][hexval].nodeid<<" "<<
+                node_obj.routing_table[i][hexval].port<<"\n";
             return node_obj.routing_table[i][hexval] ;
         }
         else{
+            cout<<"Rare case\n";
             int flag=0;
             int difference_min;
             int position;
@@ -463,10 +470,11 @@ struct node_data routing(struct node_data requesting_node){
                     ss1<<std::hex<<requesting_node_id<<" ";
                     ss1>>hexval1;
                     ss2<<std::hex<<routing_table_id<<" ";
-                    ss1>>hexval2;
+                    ss2>>hexval2;
                     if(flag==0) { 
                         difference_min = abs(hexval1-hexval2);
-                         position = j; 
+                        position = j; 
+                        flag=1;
                     }
                     else{
                         int  new_min = abs(hexval1-hexval2);
@@ -478,6 +486,17 @@ struct node_data routing(struct node_data requesting_node){
                 }
                    
             }
+            cout<<"position is "<<position<<"\n";
+
+            struct node_data node;
+            node.nodeid=node_obj.nodeid;
+            node.ip=node_obj.ip;
+            node.port=node_obj.port;
+            if(flag==0)
+            {
+                return node;
+            }
+            return node_obj.routing_table[i][position] ;
         }
     }
 }
