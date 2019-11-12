@@ -102,7 +102,14 @@ void processrequest(int cid)
 
     if(command==0)
     {
-        //pastryInit
+        //pastry node joining
+        struct node_data nodedata;
+        recv(cid,buffer,BUFFSIZE,0);
+        stringstream ss(buffer);
+        ss>>nodedata.nodeid>>nodedata.ip>>nodedata.port;
+
+        //struct node_data final_node=route(nodedata);
+
     }
     else if(command==1)
     {
@@ -149,7 +156,7 @@ void *server(void * arg)
     }
 }
 
-struct node_data isleaf(node_data node)
+struct node_data isleaf(struct node_data node)
 {
     int i,j,id,mdiff,temp;
     int lower=-1,upper=-1;
@@ -240,13 +247,45 @@ void populatestate()
    
 }
 
+
+void sendrequest(string message,string buddy_ip,string buddy_port,int control)
+{
+    int sockid,status;
+    string temp="";
+
+    sockid=socket(AF_INET,SOCK_STREAM,0);
+    if(sockid<0)
+    {
+        perror("Error in socket creation\n");
+        return;
+    }
+
+    struct sockaddr_in serveraddr;
+    serveraddr.sin_family=AF_INET;
+    serveraddr.sin_port=htons(stoi(buddy_port));
+    serveraddr.sin_addr.s_addr=inet_addr(buddy_ip.c_str());
+    
+    status=connect(sockid,(struct sockaddr*)&serveraddr,sizeof(serveraddr));
+
+    if(status<0)
+    {
+        perror("Unable to reach server\n");
+        return;  
+    }
+
+    send(sockid,(const void*)&control,sizeof(control),0);
+    char data[BUFFSIZE];
+    strcpy(data,temp.c_str());
+    send(sockid,(const void*)data,sizeof(data),0);
+}
+
+
 int main(int argc,char **argv)
 {
     
     pthread_t id;
     int data;
     string choice;
-
 
     while(1)
     {
@@ -272,10 +311,13 @@ int main(int argc,char **argv)
             pthread_create(&id,NULL,server,(void*)&temp);
             pthread_detach(id);
         }
+
         if(choice.compare("join")==0)
         {
-            string buddy_ip,buddy_port;
+            string buddy_ip,buddy_port,temp;
             cin>>buddy_ip>>buddy_port;
+            temp=node_obj.nodeid+" "+node_obj.ip+" "+node_obj.port;
+            sendrequest(temp,buddy_ip,buddy_port,0);
         }
     }
 }
