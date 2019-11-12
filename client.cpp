@@ -103,12 +103,14 @@ void processrequest(int cid)
     if(command==0)
     {
         //pastry node joining
+
         struct node_data nodedata;
         recv(cid,buffer,BUFFSIZE,0);
         stringstream ss(buffer);
         ss>>nodedata.nodeid>>nodedata.ip>>nodedata.port;
 
         //struct node_data final_node=route(nodedata);
+        //
 
     }
     else if(command==1)
@@ -288,7 +290,7 @@ struct node_data routing(struct node_data requesting_node){
     else{
         int i=0;
         for( i=0;i<8;i++){
-            if(node_obj.nodeid[i].compare(requesting_node.nodeid[i])!=0){
+            if(node_obj.nodeid[i]!=requesting_node.nodeid[i]){
                 break;
             }
 
@@ -317,7 +319,7 @@ struct node_data routing(struct node_data requesting_node){
                      int hexval1,hexval2;
         
                      string requesting_node_id=requesting_node.nodeid;
-                     string routing_table_id=node_obj.routing_table.nodeid;
+                     string routing_table_id=node_obj.routing_table[i][j].nodeid;
         
                     ss1<<std::hex<<requesting_node_id<<" ";
                     ss1>>hexval1;
