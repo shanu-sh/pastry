@@ -14,6 +14,7 @@
 #include<sstream>
 
 #include"md5.h"
+#include"splitstring.h"
 #define INET_ADDRSTRLEN 16
 
 
@@ -90,9 +91,105 @@ struct node_structure{
 };
 
 struct node_structure node_obj;
+void printroutable(struct node_structure node_obj);
 int b;
 #define BUFFSIZE 512
+// function to serialize state tables
+string serialize_tables(struct node_structure sending_node)
+{
+    string final_result="";
+    string leafset_str="";
+    string neighbourhoodset_str="";
+    string routing_table_str="";
 
+    int i=0;
+    while(i<4)
+    {
+        leafset_str+=sending_node.leafset[i].nodeid;
+        leafset_str+=":"+sending_node.leafset[i].ip;
+        leafset_str+=":"+sending_node.leafset[i].port+":";
+        i++;
+    }
+    i=0;
+    while(i<4)
+    {
+        neighbourhoodset_str+=sending_node.neighbourhoodset[i].nodeid;
+        neighbourhoodset_str+=":"+sending_node.neighbourhoodset[i].ip;
+        neighbourhoodset_str+=":"+sending_node.neighbourhoodset[i].port+":";
+        i++;
+    }
+    for(i =0;i<8;i++)
+    {
+        for(int j=0;j<16;j++)
+        {
+            //cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" "<<node_obj.routing_table[i][j].port<<" \t";
+            routing_table_str+=node_obj.routing_table[i][j].ip+":"+node_obj.routing_table[i][j].nodeid+":"+node_obj.routing_table[i][j].port+":";
+        }
+
+        //cout<<"\n";
+    }
+    //cout<<routing_table_str<<endl;
+    
+    final_result=leafset_str+neighbourhoodset_str+routing_table_str;
+    cout<<"in serialize"<<endl;
+    cout<<final_result<<endl;
+
+    return final_result;
+}
+void deserialize_tables(string serialstring)
+{
+    
+    std::vector<string> serialstring_vec=splitstring(serialstring,':');
+    struct node_structure temp;
+    int i=0,j=0;
+    while(i<12)
+    {
+        if((i%3)==0)
+        temp.leafset[j].nodeid=serialstring_vec[i];
+        else if((i%3)==1)
+        temp.leafset[j].ip=serialstring_vec[i];
+        else
+        temp.leafset[j++].port=serialstring_vec[i];
+
+        i++;
+    }
+    j=0;
+    while(i<24)
+    {
+        if((i%3)==0)
+        temp.neighbourhoodset[j].nodeid=serialstring_vec[i];
+        else if((i%3)==1)
+        temp.neighbourhoodset[j].ip=serialstring_vec[i];
+        else
+        temp.neighbourhoodset[j++].port=serialstring_vec[i];
+
+        i++;
+
+    }
+    j=0;
+    int k=0;
+    while(i<152 && j<8)
+    {
+        if((i%3)==0)
+        temp.routing_table[j][k].nodeid=serialstring_vec[i];
+        else if((i%3)==1)
+        temp.routing_table[j][k].ip=serialstring_vec[i];
+        else
+        temp.routing_table[j][k++].port=serialstring_vec[i];
+
+        if(k>=16)
+        {
+            k=0;
+            j++;
+        }
+
+        i++;
+
+    }
+    cout<<"printing in deserialize"<<endl;
+    printroutable(temp);
+
+}
 void processrequest(int cid)
 {
     int command;
@@ -242,7 +339,7 @@ void populatestate()
     {
         for(j=0;j<16;j++)
         {
-            cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" \t";
+            cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" "<<node_obj.routing_table[i][j].port<<" \t";
         }
         cout<<"\n";
     }
@@ -345,6 +442,17 @@ struct node_data routing(struct node_data requesting_node){
 
 
 }
+void printroutable(struct node_structure node_obj)
+{
+    for(int i =0;i<8;i++)
+    {
+        for(int j=0;j<16;j++)
+        {
+            cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" "<<node_obj.routing_table[i][j].port<<" \t";
+        }
+        cout<<"\n";
+    }
+}
 
 int main(int argc,char **argv)
 {
@@ -374,8 +482,8 @@ int main(int argc,char **argv)
         {
             populatestate();
             int temp=0;
-            pthread_create(&id,NULL,server,(void*)&temp);
-            pthread_detach(id);
+            //pthread_create(&id,NULL,server,(void*)&temp);
+            //pthread_detach(id);
         }
 
         if(choice.compare("join")==0)
@@ -383,7 +491,17 @@ int main(int argc,char **argv)
             string buddy_ip,buddy_port,temp;
             cin>>buddy_ip>>buddy_port;
             temp=node_obj.nodeid+" "+node_obj.ip+" "+node_obj.port;
-            sendrequest(temp,buddy_ip,buddy_port,0);
+            //sendrequest(temp,buddy_ip,buddy_port,0);
         }
+        if(choice.compare("serialize")==0)
+            {
+                string a=serialize_tables(node_obj);
+                cout<<"a is "<<a;
+                deserialize_tables(a);
+            }
+        if(choice.compare("printroutable")==0)
+            {
+                printroutable(node_obj);
+            }
     }
 }
