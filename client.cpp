@@ -95,6 +95,14 @@ void printroutable(struct node_structure node_obj);
 int b;
 #define BUFFSIZE 512
 // function to serialize state tables
+void printvec(std::vector<string> v)
+{
+    int j=0;
+    for(int i=0;i<v.size();i++)
+    {
+        cout<<"number "<<j++<<" "<<v[i]<<endl;
+    }
+}
 string serialize_tables(struct node_structure sending_node)
 {
     string final_result="";
@@ -140,6 +148,8 @@ void deserialize_tables(string serialstring)
 {
     
     std::vector<string> serialstring_vec=splitstring(serialstring,':');
+    //printvec(serialstring_vec);
+    cout<<"size is "<<serialstring_vec.size()<<endl;
     struct node_structure temp;
     int i=0,j=0;
     while(i<12)
@@ -168,7 +178,7 @@ void deserialize_tables(string serialstring)
     }
     j=0;
     int k=0;
-    while(i<152 && j<8)
+    while(i<408 && j<8)
     {
         if((i%3)==0)
         temp.routing_table[j][k].nodeid=serialstring_vec[i];
@@ -190,7 +200,7 @@ void deserialize_tables(string serialstring)
     printroutable(temp);
 
 }
-void processrequest(int cid)
+/*void processrequest(int cid)
 {
     int command;
     recv(cid,( void*)&command,sizeof(command),0);
@@ -330,7 +340,7 @@ struct node_data isleaf(struct node_data node)
         }
     }
     return res;
-}
+}*/
 
 void populatestate()
 {
@@ -364,7 +374,7 @@ void populatestate()
 }
 
 
-void sendrequest(string message,string buddy_ip,string buddy_port,int control)
+/*void sendrequest(string message,string buddy_ip,string buddy_port,int control)
 {
     int sockid,status;
     string temp="";
@@ -458,7 +468,7 @@ struct node_data routing(struct node_data requesting_node){
 
 
 
-}
+}*/
 void printroutable(struct node_structure node_obj)
 {
     for(int i =0;i<8;i++)
