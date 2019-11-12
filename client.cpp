@@ -148,7 +148,7 @@ string serialize_tables(struct node_structure sending_node)
 
     return final_result;
 }
-void deserialize_tables(string serialstring)
+struct node_structure deserialize_tables(string serialstring)
 {
     
     std::vector<string> serialstring_vec=splitstring(serialstring,':');
@@ -202,6 +202,7 @@ void deserialize_tables(string serialstring)
     }
     cout<<"printing in deserialize"<<endl;
     //printroutable(temp);
+    return temp;
 
 }
 void processrequest(int cid)
