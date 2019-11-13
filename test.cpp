@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include "Node.h"
+#include "utils.h"
 #include <fstream>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -11,7 +12,7 @@
 int main(){
     std::string ip;
     std::string port;
-    std::cin>>ip;
+    ip = utils::extractPublicIP();
     std::cin>>port;
     Node n(ip, port);
     n.print_status();
