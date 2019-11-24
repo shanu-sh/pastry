@@ -334,14 +334,15 @@ struct node_data isleaf(struct node_data node)
 
     if(id>=i&&id<=j)
     {
-        res.ip=node_obj.ip;
-        res.nodeid=node_obj.nodeid;
-        res.port=node_obj.port;
+        res.ip=node_obj.leafset[i].ip;
+        res.nodeid=node_obj.leafset[i].nodeid;
+        res.port=node_obj.leafset[i].port;
 
         ss<<hex<<res.nodeid;
         ss>>temp;
         mdiff=abs(temp-id);
         
+
         for(auto x:node_obj.leafset)
         {
             ss<<hex<<x.nodeid;
@@ -436,6 +437,7 @@ struct node_data routing(struct node_data requesting_node){
             }
 
         }
+        cout<<"i is "<<i<<"\n";
 
         stringstream ss;
         int hexval;
@@ -446,7 +448,6 @@ struct node_data routing(struct node_data requesting_node){
         ss<<std::hex<<requesting_node_id[i]<<" ";
         ss>>hexval;
         
-
         if(node_obj.routing_table[i][hexval].nodeid.compare("-1")!=0){
             cout<<"Found in routing table\n";
 
@@ -460,7 +461,7 @@ struct node_data routing(struct node_data requesting_node){
             int difference_min;
             int position;
             for(int j=0;j<16;j++) {
-                if(node_obj.routing_table[i][hexval].nodeid.compare("-1")!=0) {
+                if(node_obj.routing_table[i][j].nodeid.compare("-1")!=0) {
                      stringstream ss1,ss2;
                      int hexval1,hexval2;
         
@@ -488,15 +489,7 @@ struct node_data routing(struct node_data requesting_node){
             }
             cout<<"position is "<<position<<"\n";
 
-            struct node_data node;
-            node.nodeid=node_obj.nodeid;
-            node.ip=node_obj.ip;
-            node.port=node_obj.port;
-            if(flag==0)
-            {
-                return node;
-            }
-            return node_obj.routing_table[i][position] ;
+             return node_obj.routing_table[i][position] ;
         }
     }
 }
