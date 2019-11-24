@@ -63,6 +63,7 @@ struct node_data getdefaul_node()
 
 struct node_data routing(struct node_data requesting_node);
 void sendrequest(string message,string buddy_ip,string buddy_port,int control);
+void copy_to_routing_table(struct node_structure received_table);
 
 vector<vector<struct node_data>> get_table()
 {
@@ -273,8 +274,11 @@ void processrequest(int cid)
         cout<<buddy<<" "<<termination<<" "<<hopcount<<"\n";
 
         //update_leafset(temp);
-        //copy_to_routing(temp);
+        copy_to_routing_table(temp);
 
+        cout<<"Your updating table\n";
+
+        printroutable(node_obj);
     }
     else if(command==2)
     {
@@ -288,6 +292,10 @@ void processrequest(int cid)
     else if(command==4)
     {
         //newLeafs(leafSet)
+    }
+    else if(command==5)
+    {
+        //UPDATE YOUR TABLE 
     }
 }
 
@@ -529,7 +537,7 @@ void printroutable(struct node_structure node_obj)
     }
 }
 
-void copyToRoutingTable(struct node_structure received_table)
+void copy_to_routing_table(struct node_structure received_table)
 {   
     int i=0;
     for (i=0; i<8; i++){
@@ -537,12 +545,15 @@ void copyToRoutingTable(struct node_structure received_table)
             break;
          }
     }
-    for(int j=0; j<16; j++) {
-        if((node_obj.routing_table[i][j].nodeid.compare("-1")==0 || node_obj.routing_table[i][j].nodeid.compare(node_obj.nodeid)==0)) {
-             if(received_table.routing_table[i][j].nodeid.compare("-1")!=0 && received_table.routing_table[i][j].nodeid.compare(node_obj.routing_table[i][j].nodeid)!=0){
+    for(int j=0; j<16; j++)
+    {
+        if((node_obj.routing_table[i][j].nodeid.compare("-1")==0 || node_obj.routing_table[i][j].nodeid.compare(node_obj.nodeid)==0))
+        {
+             if(received_table.routing_table[i][j].nodeid.compare("-1")!=0 && received_table.routing_table[i][j].nodeid.compare(node_obj.routing_table[i][j].nodeid)!=0)
+            {
                node_obj.routing_table[i][j] = received_table.routing_table[i][j];
                cout<<"Updating ["<<i<<"]["<<j<<"] to "<<received_table.routing_table[i][j].nodeid<<endl;
-        }
+            }
         }
     }
 }
