@@ -316,6 +316,7 @@ void processrequest(int cid)
         //update_leafset(temp);
         copy_to_routing_table(temp);
 
+        printroutable(node_obj);
     }
 }
 
@@ -563,28 +564,34 @@ void copy_to_routing_table(struct node_structure received_table)
 {   
     int i=0;
     for (i=0; i<8; i++){
-         if(node_obj.nodeid[i]==received_table.nodeid[i]){
+         if(node_obj.nodeid[i]!=received_table.nodeid[i]){
             break;
          }
     }
     cout<<"copying\n";
     for(int j=0; j<16; j++)
     {
+        cout<<"Node id is "<<node_obj.nodeid<<"\n";
+        cout<<"recived table id "<<received_table.nodeid<<"\n";
+
+        cout<<i<<" "<<j<<"\n";
         if((node_obj.routing_table[i][j].nodeid.compare("-1")==0 || node_obj.routing_table[i][j].nodeid.compare(node_obj.nodeid)==0))
         {
-             if(received_table.routing_table[i][j].nodeid.compare("-1")!=0 && received_table.routing_table[i][j].nodeid.compare(node_obj.routing_table[i][j].nodeid)!=0)
+            cout<<received_table.routing_table[i][j].ip<<" is rece\n";
+            if(received_table.routing_table[i][j].nodeid.compare("-1")!=0 && received_table.routing_table[i][j].nodeid.compare(node_obj.routing_table[i][j].nodeid)!=0)
             {
                node_obj.routing_table[i][j] = received_table.routing_table[i][j];
-               cout<<"Updating ["<<i<<"]["<<j<<"] to "<<received_table.routing_table[i][j].nodeid<<endl;
             }
         }
     }
+    cout<<"Copy complete\n";
 }
 
 
 
 void sharetables()
 {
+    cout<<"Inside share\n";
     vector<struct node_data> data;
 
     for(auto x:node_obj.leafset)
@@ -614,6 +621,10 @@ void sharetables()
         }
     }
 
+    for(auto x:data)
+    {
+        cout<<x.nodeid<<" "<<x.ip<<"\n";
+    }
     for(auto x:data)
     {
         sendrequest(serialize_tables(node_obj),x.ip,x.port,5);
