@@ -86,6 +86,7 @@ struct node_data routing(struct node_data requesting_node);
 void sendrequest(string message,string buddy_ip,string buddy_port,int control);
 void copy_to_routing_table(struct node_structure received_table);
 void sharetables();
+void getkey(string key, struct node_data temp_node);
 
 vector<vector<struct node_data>> get_table()
 {
@@ -403,14 +404,28 @@ void processrequest(int cid)
         }
 
     }
+
     else if(command==3)
     {
         //forward(msg,key,nextId)
     }
+
     else if(command==4)
     {
-        //newLeafs(leafSet)
+        //getKey
+        char BUFFER[BUFFSIZE];
+        recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
+
+        stringstream ss(BUFFER);
+        struct node_data temp;
+
+        string key;
+        ss>>key;
+        ss>>key>>temp.ip>>temp.port;
+
+        getkey(key,temp);
     }
+
     else if(command==5)
     {
         //UPDATE YOUR TABLE 
@@ -424,6 +439,15 @@ void processrequest(int cid)
         copy_to_routing_table(temp);
 
         printroutable(node_obj);
+    }
+
+    else if(command==6)
+    {
+        //Displays the value of the key
+        char BUFFER[BUFFSIZE];
+        recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
+
+        cout<<BUFFER<<"\n";
     }
 }
 
@@ -704,18 +728,16 @@ void copy_to_routing_table(struct node_structure received_table)
     cout<<"Copy complete\n";
 }
 
-
-
 void sharetables()
 {
     cout<<"Inside share\n";
-    vector<struct node_data> data;
+    set<struct node_data,less_than_cmp> data;
 
     for(auto x:node_obj.leafset)
     {
         if(x.nodeid.compare("-1")!=0)
         {
-            data.push_back(x);
+            data.insert(x);
         }
     }
 
@@ -723,7 +745,7 @@ void sharetables()
     {
         if(x.nodeid.compare("-1")!=0)
         {
-            data.push_back(x);
+            data.insert(x);
         }
     }
 
@@ -733,7 +755,7 @@ void sharetables()
         {
             if(y.nodeid.compare("-1")!=0&&y.nodeid.compare(node_obj.nodeid)!=0)
             {
-                data.push_back(y);
+                data.insert(y);
             }
         }
     }
@@ -744,13 +766,39 @@ void sharetables()
     }
 }
 
+void getkey(string key, struct node_data temp_node)
+{
+    string hash=key;
+    struct node_data temp_data;
+    temp_data.nodeid=hash;
+    struct node_data final_node=routing(temp_data);
+
+    string temp;
+    if(final_node.nodeid.compare(node_obj.nodeid)==0)
+    {
+        if(node_obj.local_hashtable.find(hash)!=node_obj.local_hashtable.end())
+        {
+            temp=node_obj.local_hashtable[hash];
+        }
+        else
+            temp="Not found";
+
+        sendrequest(temp,temp_node.ip,temp_node.port,6);
+    }
+    else
+    {
+        sendrequest(hash+" "+temp_node.ip+" "+temp_node.port,final_node.ip,final_node.port,4);
+    }
+    
+}
+
 int main(int argc,char **argv)
 {
     
     pthread_t id;
     int data;
     string choice;
-
+    string key,value;
     while(1)
     {
         cin>>choice;
@@ -797,6 +845,15 @@ int main(int argc,char **argv)
         if(choice.compare("printleaf")==0)
         {
             printleaf();
+        }
+        if(choice.compare("getkey")==0)
+        {
+            cin>>key;
+            key=generate_md5(key).substr(0,8);
+            struct node_data temp;
+            temp.ip=node_obj.ip;
+            temp.port=node_obj.port;
+            getkey(key,temp);
         }
     }
 }
