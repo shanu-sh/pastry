@@ -407,7 +407,11 @@ void processrequest(int cid)
 
     else if(command==3)
     {
-        //forward(msg,key,nextId)
+        char BUFFER[BUFFSIZE];
+        recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
+
+
+        
     }
 
     else if(command==4)
@@ -766,6 +770,7 @@ void sharetables()
     }
 }
 
+
 void getkey(string key, struct node_data temp_node)
 {
     string hash=key;
@@ -790,6 +795,35 @@ void getkey(string key, struct node_data temp_node)
         sendrequest(hash+" "+temp_node.ip+" "+temp_node.port,final_node.ip,final_node.port,4);
     }
     
+}
+
+
+void setkey(string key,string value)
+{
+    string hashkey = generate_md5(key);
+    hashkey = hashkey.substr(0,8);
+    cout<<"hashvalue of key is "<<hashkey<<endl;
+    struct node_data key_obj;
+    key_obj.nodeid=hashkey;
+    struct node_data final_key_des=routing(key_obj);
+
+    if(final_key_des.nodeid==node_obj.nodeid)
+    {
+        node_obj.local_hashtable[key]=value;
+        cout<<"key set done"<<endl;
+    }
+    else{
+        string msg=key+" "+value;
+        sendrequest(msg,final_key_des.ip,final_key_des.port,3);
+    }
+
+}
+void printhash()
+{
+    for(auto x:node_obj.local_hashtable)
+    {
+        cout<<x.first<<" "<<x.second<<endl;
+    }
 }
 
 int main(int argc,char **argv)
@@ -846,6 +880,7 @@ int main(int argc,char **argv)
         {
             printleaf();
         }
+
         if(choice.compare("getkey")==0)
         {
             cin>>key;
@@ -854,6 +889,17 @@ int main(int argc,char **argv)
             temp.ip=node_obj.ip;
             temp.port=node_obj.port;
             getkey(key,temp);
+        }
+        if(choice.compare("set")==0)
+        {
+            string key,value;
+            cin>>key>>value;
+            setkey(key,value);
+
+        }
+        if(choice.compare("printhash")==0)
+        {
+            printhash();
         }
     }
 }
