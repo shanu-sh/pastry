@@ -207,9 +207,8 @@ string serialize_tables(struct node_structure sending_node)
     final_result+=sending_node.port+":";
     final_result+=sending_node.nodeid+":";
     final_result+=leafset_str+neighbourhoodset_str+routing_table_str;
-    cout<<"in serialize"<<endl;
-    cout<<final_result<<endl;
-
+    //cout<<"in serialize"<<endl;
+    
     return final_result;
 }
 struct node_structure deserialize_tables(string serialstring)
@@ -265,9 +264,8 @@ struct node_structure deserialize_tables(string serialstring)
         i++;
 
     }
-    cout<<"printing in deserialize"<<endl;
-    cout<<"node id is :"<<temp.nodeid<<endl;
-    printroutable(temp);
+   // cout<<"printing in deserialize"<<endl;
+    
     return temp;
 }
 
@@ -317,10 +315,12 @@ void processrequest(int cid)
             cout<<"other\n";
             string temp=serialize_tables(node_obj);
             temp=temp+" 1 0 1";
+            cout<<"requesting port is "<<nodedata.port<<"\n";
             sendrequest(temp,nodedata.ip,nodedata.port,1);
 
             string data(buffer);
             data=data+" 2 ";
+            cout<<"Final port is "<<final_node.port<<"\n";
             sendrequest(data,final_node.ip,final_node.port,2);   
         }
         
@@ -344,8 +344,7 @@ void processrequest(int cid)
         node_structure temp=deserialize_tables(tmp);
 
         cout<<"\n";
-        printroutable(temp);
-
+       
         cout<<buddy<<" "<<termination<<" "<<hopcount<<"\n";
 
         update_leaf_set(temp);
@@ -457,20 +456,25 @@ void *server(void * arg)
 
 struct node_data isleaf(struct node_data node)
 {
-    int i,j,id,mdiff,temp;
-    int lower=-1,upper=-1;
+    long i,j,id,mdiff,temp;
+    long lower=-1,upper=-1;
 
+    
     node_data default_node=getdefaul_node();
     node_data res;
 
     stringstream ss;
 
+    if(node_obj.leafset[0].nodeid.compare("-1")==0)
+        return getdefaul_node();
+    
     for(auto x:node_obj.leafset)
     {
         if(x.nodeid.compare(default_node.nodeid)!=0)
         {
             if(lower==-1)
             {
+                cout<<"lower is "<<x.nodeid<<"\n";
                 ss<<hex<<x.nodeid;
                 ss>>i;
                 lower=1;
@@ -479,6 +483,7 @@ struct node_data isleaf(struct node_data node)
             }
             else if(lower==1)
             {
+                cout<<"upper is "<<x.nodeid<<"\n";
                 ss<<hex<<x.nodeid;
                 ss>>j;
             }
@@ -488,15 +493,20 @@ struct node_data isleaf(struct node_data node)
     if(lower ==-1 && upper==-1)
         return default_node;
 
-    ss<<hex<<node.nodeid;
-    ss>>id;
+    stringstream ss1;
+    ss1<<hex<<node.nodeid;
+    ss1>>id;
 
+    cout<<"node id is "<<node.nodeid<<"\n";
+    cout<<"id is "<<id<<" i is "<<i<< " j is "<<j <<"\n";
     if(id>=i&&id<=j)
     {
+        
         res.ip=node_obj.leafset[i].ip;
         res.nodeid=node_obj.leafset[i].nodeid;
         res.port=node_obj.leafset[i].port;
-
+ 
+        cout<<"result set is res "<<res.ip<<"\n";
         ss<<hex<<res.nodeid;
         ss>>temp;
         mdiff=abs(temp-id);
@@ -513,6 +523,11 @@ struct node_data isleaf(struct node_data node)
             }
         }
     }
+    else
+    {
+        return getdefaul_node();
+    }
+    
     return res;
 }
 
@@ -585,6 +600,7 @@ void sendrequest(string message,string buddy_ip,string buddy_port,int control)
 struct node_data routing(struct node_data requesting_node){
     
     struct node_data requesting_node_leaf = isleaf(requesting_node); 
+    cout<<"requesting node leaf is "<<requesting_node_leaf.nodeid<<"\n";
     if( requesting_node_leaf.nodeid.compare("-1")!=0){
         cout<<"in leaf\n";
         return requesting_node_leaf;
@@ -598,8 +614,7 @@ struct node_data routing(struct node_data requesting_node){
             }
 
         }
-        cout<<"i is "<<i<<"\n";
-
+        
         stringstream ss;
         int hexval;
         
@@ -612,8 +627,6 @@ struct node_data routing(struct node_data requesting_node){
         if(node_obj.routing_table[i][hexval].nodeid.compare("-1")!=0){
             cout<<"Found in routing table\n";
 
-            cout<<"Value is "<<node_obj.routing_table[i][hexval].nodeid<<" "<<
-                node_obj.routing_table[i][hexval].port<<"\n";
             return node_obj.routing_table[i][hexval] ;
         }
         else{
@@ -648,9 +661,7 @@ struct node_data routing(struct node_data requesting_node){
                 }
                    
             }
-            cout<<"position is "<<position<<"\n";
-
-             return node_obj.routing_table[i][position] ;
+            return node_obj.routing_table[i][position] ;
         }
     }
 }
@@ -676,16 +687,14 @@ void copy_to_routing_table(struct node_structure received_table)
             break;
          }
     }
-    cout<<"copying\n";
+    //<<"copying\n";
     for(int j=0; j<16; j++)
     {
-        cout<<"Node id is "<<node_obj.nodeid<<"\n";
-        cout<<"recived table id "<<received_table.nodeid<<"\n";
+        // cout<<"Node id is "<<node_obj.nodeid<<"\n";
+        // cout<<"recived table id "<<received_table.nodeid<<"\n";
 
-        cout<<i<<" "<<j<<"\n";
         if((node_obj.routing_table[i][j].nodeid.compare("-1")==0 || node_obj.routing_table[i][j].nodeid.compare(node_obj.nodeid)==0))
         {
-            cout<<received_table.routing_table[i][j].ip<<" is rece\n";
             if(received_table.routing_table[i][j].nodeid.compare("-1")!=0 && received_table.routing_table[i][j].nodeid.compare(node_obj.routing_table[i][j].nodeid)!=0)
             {
                node_obj.routing_table[i][j] = received_table.routing_table[i][j];
