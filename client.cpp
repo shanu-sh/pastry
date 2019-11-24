@@ -505,15 +505,20 @@ void printroutable(struct node_structure node_obj)
     }
 }
 
-void copyToRoutingTable(struct node_structure recvdTable)
+void copyToRoutingTable(struct node_structure received_table)
 {
-    string newNode = recvdTable.nodeid;
-    int i;
-    for (i=0; i<8 && node_obj.nodeid[i]==newNode[i]; i++);
+    int i=0;
+    for (i=0; i<8; i++){
+         if(node_obj.nodeid[i].compare(received_table.nodeid[i])==0){
+            break;
+         }
+    }
     for(int j=0; j<16; j++) {
-        if((node_obj.routing_table[i][j].nodeid.compare("-1")==0 || node_obj.routing_table[i][j].nodeid.compare(node_obj.nodeid)==0) && recvdTable.routing_table[i][j].nodeid.compare("-1")!=0 && recvdTable.routing_table[i][j].nodeid.compare(node_obj.routing_table[i][j].nodeid)!=0) {
-            node_obj.routing_table[i][j] = recvdTable.routing_table[i][j];
-            cout<<"Updating ["<<i<<"]["<<j<<"] to "<<recvdTable.routing_table[i][j].nodeid<<endl;
+        if((node_obj.routing_table[i][j].nodeid.compare("-1")==0 || node_obj.routing_table[i][j].nodeid.compare(node_obj.nodeid)==0)) {
+             if(received_table.routing_table[i][j].nodeid.compare("-1")!=0 && received_table.routing_table[i][j].nodeid.compare(node_obj.routing_table[i][j].nodeid)!=0){
+               node_obj.routing_table[i][j] = received_table.routing_table[i][j];
+               cout<<"Updating ["<<i<<"]["<<j<<"] to "<<received_table.routing_table[i][j].nodeid<<endl;
+        }
         }
     }
 }
