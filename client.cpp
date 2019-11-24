@@ -506,10 +506,10 @@ void printroutable(struct node_structure node_obj)
 }
 
 void copyToRoutingTable(struct node_structure received_table)
-{
+{   
     int i=0;
     for (i=0; i<8; i++){
-         if(node_obj.nodeid[i].compare(received_table.nodeid[i])==0){
+         if(node_obj.nodeid[i]==received_table.nodeid[i]){
             break;
          }
     }
