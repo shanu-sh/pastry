@@ -159,7 +159,7 @@ void update_leaf_set(struct node_structure received_node){
     }
     for(auto it : greater_nodes){
         node_obj.leafset[i++] = it;
-        if(i==4) break;
+        if(i==8) break;
     }
 //    for(int i = 0; i < 8; i++){
 //        if(i < 4)
