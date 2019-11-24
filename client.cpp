@@ -49,6 +49,11 @@ struct node_data
     string nodeid;
     string ip;
     string port;
+    node_data(){};
+    node_data(string nodeid, string ip, string port):nodeid(nodeid), ip(ip), port(port){}
+    bool operator < (const node_data& rhs) const{
+        return stoll(this->nodeid, 0 , 16) < stoll(rhs.nodeid, 0, 16);
+    }
 };
 
 struct node_data getdefaul_node()
@@ -60,6 +65,18 @@ struct node_data getdefaul_node()
     return defaul;
 
 }
+class less_than_cmp{
+public:
+    bool operator()(const struct node_data lhs, const struct node_data rhs){
+        return stoll(lhs.nodeid, 0 , 16) < stoll(rhs.nodeid, 0, 16);
+    }
+};
+class greater_than_cmp{
+public:
+    bool operator()(const struct node_data lhs, const struct node_data rhs){
+        return stoll(lhs.nodeid, 0 , 16) > stoll(rhs.nodeid, 0, 16);
+    }
+};
 
 struct node_data routing(struct node_data requesting_node);
 void sendrequest(string message,string buddy_ip,string buddy_port,int control);
@@ -99,6 +116,58 @@ struct node_structure{
 struct node_structure node_obj;
 void printroutable(struct node_structure node_obj);
 int b;
+
+void update_leaf_set(struct node_structure received_node){
+    set<node_data, greater_than_cmp> lesser_nodes;//stored in descending order
+    set<node_data, less_than_cmp> greater_nodes;//stored in ascending order
+    node_data curr_node = node_data(node_obj.nodeid, node_obj.ip, node_obj.port);
+    node_data recv_node = node_data(received_node.nodeid, received_node.ip, received_node.port);
+
+    //insert recv_node as candidate for leaf_set of node_obj
+    if(recv_node < curr_node){
+        lesser_nodes.insert(recv_node);
+    }
+    else{
+        greater_nodes.insert(recv_node);
+    }
+
+    for(auto u : received_node.leafset){
+        if(u.nodeid.compare("-1")==0)
+            continue;
+        if(u < curr_node){
+            lesser_nodes.insert(u);
+        }
+        else{
+            greater_nodes.insert(u);
+        }
+    }
+    for(auto u : node_obj.leafset){
+        if(u.nodeid.compare("-1")==0)
+            continue;
+        if(u < curr_node){
+            lesser_nodes.insert(u);
+        }
+        else{
+            greater_nodes.insert(u);
+        }
+    }
+    node_obj.leafset.clear();
+    int i=0;
+    for(auto it : lesser_nodes){
+        node_obj.leafset[i++] = it;
+        if(i==4) break;
+    }
+    for(auto it : greater_nodes){
+        node_obj.leafset[i++] = it;
+        if(i==4) break;
+    }
+//    for(int i = 0; i < 8; i++){
+//        if(i < 4)
+//            node_obj.leafset[i] = lesser_nodes[i];
+//        else
+//            node_obj.leafset[i] = greater_nodes[i-4];
+//    }
+}
 
 // function to serialize state tables
 void printvec(std::vector<string> v)
