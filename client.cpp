@@ -64,6 +64,7 @@ struct node_data getdefaul_node()
 struct node_data routing(struct node_data requesting_node);
 void sendrequest(string message,string buddy_ip,string buddy_port,int control);
 void copy_to_routing_table(struct node_structure received_table);
+void sharetables();
 
 vector<vector<struct node_data>> get_table()
 {
@@ -284,6 +285,13 @@ void processrequest(int cid)
         cout<<"Your updating table\n";
 
         printroutable(node_obj);
+
+        if(termination==1)
+        {
+            sharetables();
+            cout<<"\nJoining complete\n";
+        }
+        
     }
     else if(command==2)
     {
@@ -301,6 +309,13 @@ void processrequest(int cid)
     else if(command==5)
     {
         //UPDATE YOUR TABLE 
+        char BUFFER[BUFFSIZE];
+        recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
+
+        node_structure temp=deserialize_tables(BUFFER);
+        //update_leafset(temp);
+        copy_to_routing_table(temp);
+
     }
 }
 
@@ -563,6 +578,45 @@ void copy_to_routing_table(struct node_structure received_table)
                cout<<"Updating ["<<i<<"]["<<j<<"] to "<<received_table.routing_table[i][j].nodeid<<endl;
             }
         }
+    }
+}
+
+
+
+void sharetables()
+{
+    vector<struct node_data> data;
+
+    for(auto x:node_obj.leafset)
+    {
+        if(x.nodeid.compare("-1")!=0)
+        {
+            data.push_back(x);
+        }
+    }
+
+    for(auto x:node_obj.neighbourhoodset)
+    {
+        if(x.nodeid.compare("-1")!=0)
+        {
+            data.push_back(x);
+        }
+    }
+
+    for(auto x:node_obj.routing_table)
+    {
+        for(auto y:x)
+        {
+            if(y.nodeid.compare("-1")!=0&&y.nodeid.compare(node_obj.nodeid)!=0)
+            {
+                data.push_back(y);
+            }
+        }
+    }
+
+    for(auto x:data)
+    {
+        sendrequest(serialize_tables(node_obj),x.ip,x.port,5);
     }
 }
 
