@@ -135,7 +135,7 @@ string serialize_tables(struct node_structure sending_node)
         for(int j=0;j<16;j++)
         {
             //cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" "<<node_obj.routing_table[i][j].port<<" \t";
-            routing_table_str+=node_obj.routing_table[i][j].ip+":"+node_obj.routing_table[i][j].nodeid+":"+node_obj.routing_table[i][j].port+":";
+            routing_table_str+=node_obj.routing_table[i][j].nodeid+":"+node_obj.routing_table[i][j].ip+":"+node_obj.routing_table[i][j].port+":";
         }
 
         //cout<<"\n";
@@ -234,6 +234,7 @@ void processrequest(int cid)
         {
             cout<<"Self node\n";
             string temp=serialize_tables(node_obj);
+            temp=temp+" 1 1 1";
             sendrequest(temp,nodedata.ip,nodedata.port,1);
         }
 
@@ -252,7 +253,28 @@ void processrequest(int cid)
     else if(command==1)
     {
         //update your table
+
+        int buddy,termination,hopcount;
         cout<<"Recieved reques for updating table\n";
+
+        char BUFFER[BUFFSIZE];
+        recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
+        cout<<"Recieved value is "<<BUFFER<<"\n";
+
+        char tmp[BUFFSIZE];
+        stringstream ss(BUFFER);
+        ss>>tmp;
+        ss>>buddy>>termination>>hopcount;
+        node_structure temp=deserialize_tables(tmp);
+
+        cout<<"\n";
+        printroutable(temp);
+
+        cout<<buddy<<" "<<termination<<" "<<hopcount<<"\n";
+
+        //update_leafset(temp);
+        //copy_to_routing(temp);
+
     }
     else if(command==2)
     {
@@ -377,14 +399,16 @@ void populatestate()
         i++;
     }
 
-    for(i =0;i<8;i++)
-    {
-        for(j=0;j<16;j++)
-        {
-            cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" "<<node_obj.routing_table[i][j].port<<" \t";
-        }
-        cout<<"\n";
-    }
+    // for(i =0;i<8;i++)
+    // {
+    //     for(j=0;j<16;j++)
+    //     {
+    //         cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" "<<node_obj.routing_table[i][j].port<<" \t";
+    //     }
+    //     cout<<"\n";
+    // }
+
+    printroutable(node_obj);
    
 }
 
