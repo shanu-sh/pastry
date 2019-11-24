@@ -425,7 +425,7 @@ void processrequest(int cid)
 
         string key;
         ss>>key;
-        ss>>key>>temp.ip>>temp.port;
+        ss>>temp.ip>>temp.port;
 
         getkey(key,temp);
     }
@@ -773,17 +773,16 @@ void sharetables()
 
 void getkey(string key, struct node_data temp_node)
 {
-    string hash=key;
     struct node_data temp_data;
-    temp_data.nodeid=hash;
+    temp_data.nodeid=key;
     struct node_data final_node=routing(temp_data);
 
     string temp;
     if(final_node.nodeid.compare(node_obj.nodeid)==0)
     {
-        if(node_obj.local_hashtable.find(hash)!=node_obj.local_hashtable.end())
+        if(node_obj.local_hashtable.find(key)!=node_obj.local_hashtable.end())
         {
-            temp=node_obj.local_hashtable[hash];
+            temp=node_obj.local_hashtable[key];
         }
         else
             temp="Not found";
@@ -792,7 +791,7 @@ void getkey(string key, struct node_data temp_node)
     }
     else
     {
-        sendrequest(hash+" "+temp_node.ip+" "+temp_node.port,final_node.ip,final_node.port,4);
+        sendrequest(key+" "+temp_node.ip+" "+temp_node.port,final_node.ip,final_node.port,4);
     }
     
 }
