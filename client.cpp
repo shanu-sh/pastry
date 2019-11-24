@@ -51,10 +51,10 @@ struct node_data
     string port;
     node_data(){};
     node_data(string nodeid, string ip, string port):nodeid(nodeid), ip(ip), port(port){}
-    bool operator < (const node_data& rhs) const{
-        return stoll(this->nodeid, 0 , 16) < stoll(rhs.nodeid, 0, 16);
-    }
 };
+inline bool operator < (const node_data& lhs, const node_data& rhs){
+    return stoll(lhs.nodeid, 0 , 16) < stoll(rhs.nodeid, 0, 16);
+}
 
 struct node_data getdefaul_node()
 {
@@ -67,13 +67,13 @@ struct node_data getdefaul_node()
 }
 class less_than_cmp{
 public:
-    bool operator()(const struct node_data lhs, const struct node_data rhs){
+    bool operator()(const struct node_data& lhs, const struct node_data& rhs){
         return stoll(lhs.nodeid, 0 , 16) < stoll(rhs.nodeid, 0, 16);
     }
 };
 class greater_than_cmp{
 public:
-    bool operator()(const struct node_data lhs, const struct node_data rhs){
+    bool operator()(const struct node_data& lhs, const struct node_data& rhs){
         return stoll(lhs.nodeid, 0 , 16) > stoll(rhs.nodeid, 0, 16);
     }
 };
@@ -151,7 +151,6 @@ void update_leaf_set(struct node_structure received_node){
             greater_nodes.insert(u);
         }
     }
-    node_obj.leafset.clear();
     int i=0;
     for(auto it : lesser_nodes){
         node_obj.leafset[i++] = it;
@@ -161,12 +160,7 @@ void update_leaf_set(struct node_structure received_node){
         node_obj.leafset[i++] = it;
         if(i==8) break;
     }
-//    for(int i = 0; i < 8; i++){
-//        if(i < 4)
-//            node_obj.leafset[i] = lesser_nodes[i];
-//        else
-//            node_obj.leafset[i] = greater_nodes[i-4];
-//    }
+
 }
 
 // function to serialize state tables
