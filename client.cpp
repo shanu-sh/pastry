@@ -142,8 +142,10 @@ string serialize_tables(struct node_structure sending_node)
         //cout<<"\n";
     }
     //cout<<routing_table_str<<endl;
-    
-    final_result=leafset_str+neighbourhoodset_str+routing_table_str;
+    final_result=sending_node.ip+":";
+    final_result+=sending_node.port+":";
+    final_result+=sending_node.nodeid+":";
+    final_result+=leafset_str+neighbourhoodset_str+routing_table_str;
     cout<<"in serialize"<<endl;
     cout<<final_result<<endl;
 
@@ -156,8 +158,10 @@ struct node_structure deserialize_tables(string serialstring)
     //printvec(serialstring_vec);
     cout<<"size is "<<serialstring_vec.size()<<endl;
     struct node_structure temp;
-    int i=0,j=0;
-    while(i<12)
+    temp.ip=serialstring_vec[0],temp.port=serialstring_vec[1],temp.nodeid= serialstring_vec[2];
+
+    int i=3,j=0;
+    while(i<(12+3))
     {
         if((i%3)==0)
         temp.leafset[j].nodeid=serialstring_vec[i];
@@ -169,7 +173,7 @@ struct node_structure deserialize_tables(string serialstring)
         i++;
     }
     j=0;
-    while(i<24)
+    while(i<(24+3))
     {
         if((i%3)==0)
         temp.neighbourhoodset[j].nodeid=serialstring_vec[i];
@@ -183,7 +187,7 @@ struct node_structure deserialize_tables(string serialstring)
     }
     j=0;
     int k=0;
-    while(i<408 && j<8)
+    while(i<(408+3) && j<8)
     {
         if((i%3)==0)
         temp.routing_table[j][k].nodeid=serialstring_vec[i];
@@ -202,7 +206,8 @@ struct node_structure deserialize_tables(string serialstring)
 
     }
     cout<<"printing in deserialize"<<endl;
-    //printroutable(temp);
+    cout<<"node id is :"<<temp.nodeid<<endl;
+    printroutable(temp);
     return temp;
 
 }
@@ -527,6 +532,8 @@ struct node_data routing(struct node_data requesting_node){
 }
 void printroutable(struct node_structure node_obj)
 {
+    cout<<endl<<"my node id is :"<<node_obj.nodeid<<endl;
+    cout<<node_obj.ip<<" "<<node_obj.port<<"\n";
     for(int i =0;i<8;i++)
     {
         for(int j=0;j<16;j++)
@@ -545,6 +552,7 @@ void copy_to_routing_table(struct node_structure received_table)
             break;
          }
     }
+    cout<<"copying\n";
     for(int j=0; j<16; j++)
     {
         if((node_obj.routing_table[i][j].nodeid.compare("-1")==0 || node_obj.routing_table[i][j].nodeid.compare(node_obj.nodeid)==0))
