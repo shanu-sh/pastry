@@ -20,6 +20,10 @@
 #define BUFFSIZE 8092
 
 using namespace std;
+
+const int LEAF_SIZE = 8;
+const int NEIGHBOURS_SIZE = 8;
+
 std::string extractPublicIP(){
     struct ifaddrs *ifaddr, *ifa;
     int family, s, n;
@@ -164,14 +168,7 @@ void update_leaf_set(struct node_structure received_node){
 }
 
 // function to serialize state tables
-void printvec(std::vector<string> v)
-{
-    int j=0;
-    for(int i=0;i<v.size();i++)
-    {
-        cout<<"number "<<j++<<" "<<v[i]<<endl;
-    }
-}
+
 string serialize_tables(struct node_structure sending_node)
 {
     string final_result="";
@@ -219,7 +216,6 @@ struct node_structure deserialize_tables(string serialstring)
 {
     
     std::vector<string> serialstring_vec=splitstring(serialstring,':');
-    //printvec(serialstring_vec);
     cout<<"size is "<<serialstring_vec.size()<<endl;
     struct node_structure temp;
     temp.ip=serialstring_vec[0],temp.port=serialstring_vec[1],temp.nodeid= serialstring_vec[2];
@@ -273,8 +269,18 @@ struct node_structure deserialize_tables(string serialstring)
     cout<<"node id is :"<<temp.nodeid<<endl;
     printroutable(temp);
     return temp;
-
 }
+
+void printleaf()
+{
+    cout<<"In leafset\n"<<node_obj.leafset.size();
+    for(auto x:node_obj.leafset)
+    {
+        cout<<"Leafset\n";
+        cout<<x.ip<<" "<<x.port<<" "<<x.nodeid<<"\n";
+    }
+}
+
 void processrequest(int cid)
 {
     int command;
@@ -297,8 +303,6 @@ void processrequest(int cid)
         struct node_data final_node=routing(nodedata);
         
         string temp="";
-        
-        //sendrequest(temp,nodedata.ip,nodedata.port,1);
 
         if(final_node.nodeid==node_obj.nodeid)
         {
@@ -312,9 +316,11 @@ void processrequest(int cid)
         {
             cout<<"other\n";
             string temp=serialize_tables(node_obj);
+            temp=temp+" 1 0 1";
             sendrequest(temp,nodedata.ip,nodedata.port,1);
 
             string data(buffer);
+            data=data+" 2 ";
             sendrequest(data,final_node.ip,final_node.port,2);   
         }
         
@@ -342,7 +348,9 @@ void processrequest(int cid)
 
         cout<<buddy<<" "<<termination<<" "<<hopcount<<"\n";
 
-        //update_leafset(temp);
+        update_leaf_set(temp);
+        printleaf();
+
         copy_to_routing_table(temp);
 
         cout<<"Your updating table\n";
@@ -359,6 +367,41 @@ void processrequest(int cid)
     else if(command==2)
     {
         //Handle join request
+        char BUFFER[BUFFSIZE];
+        recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
+
+        stringstream ss(BUFFER);
+        struct node_data nodedata;
+
+        ss>>nodedata.nodeid>>nodedata.ip>>nodedata.port;
+
+        int hopcount;
+        ss>>hopcount;
+
+        struct node_data final_node=routing(nodedata);
+
+        if(final_node.nodeid==node_obj.nodeid)
+        {
+            cout<<"Self node\n";
+            string temp=serialize_tables(node_obj);
+            temp=temp+" 0 1 "+to_string(hopcount);
+            sendrequest(temp,nodedata.ip,nodedata.port,1);
+        }
+
+        else
+        {
+            cout<<"routing to other part\n";
+
+            string temp=serialize_tables(node_obj);
+            temp=temp+" 0 0 "+to_string(hopcount);
+            sendrequest(temp,nodedata.ip,nodedata.port,1);
+
+            string data(buffer);
+            hopcount++;
+            data=data+to_string(hopcount);
+            sendrequest(data,final_node.ip,final_node.port,2);
+
+        }
 
     }
     else if(command==3)
@@ -376,7 +419,9 @@ void processrequest(int cid)
         recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
 
         node_structure temp=deserialize_tables(BUFFER);
-        //update_leafset(temp);
+        update_leaf_set(temp);
+        //temp=temp+" 0 1 "+to_string(hopcount);
+
         copy_to_routing_table(temp);
 
         printroutable(node_obj);
@@ -686,10 +731,6 @@ void sharetables()
 
     for(auto x:data)
     {
-        cout<<x.nodeid<<" "<<x.ip<<"\n";
-    }
-    for(auto x:data)
-    {
         sendrequest(serialize_tables(node_obj),x.ip,x.port,5);
     }
 }
@@ -742,8 +783,11 @@ int main(int argc,char **argv)
         }
         if(choice.compare("printroutable")==0)
         {
-            //printroutable(node_obj);
+            printroutable(node_obj);
         }
-        
+        if(choice.compare("printleaf")==0)
+        {
+            printleaf();
+        }
     }
 }
