@@ -501,8 +501,10 @@ struct node_data isleaf(struct node_data node)
     if(node_obj.leafset[0].nodeid.compare("-1")==0)
         return getdefaul_node();
     
+    int min=INT_MAX,count=0;
     for(auto x:node_obj.leafset)
     {
+        count++;
         if(x.nodeid.compare(default_node.nodeid)!=0)
         {
             if(lower==-1)
@@ -513,12 +515,16 @@ struct node_data isleaf(struct node_data node)
                 lower=1;
                 upper=1;
                 j=i;
+                if(min>count)
+                    min=count;
             }
             else if(lower==1)
             {
                 cout<<"upper is "<<x.nodeid<<"\n";
-                ss<<hex<<x.nodeid;
-                ss>>j;
+                stringstream ss2;
+                ss2<<hex<<x.nodeid;
+                ss2>>j;
+                upper=j;
             }
         }
     }
@@ -535,9 +541,9 @@ struct node_data isleaf(struct node_data node)
     if(id>=i&&id<=j)
     {
         
-        res.ip=node_obj.leafset[i].ip;
-        res.nodeid=node_obj.leafset[i].nodeid;
-        res.port=node_obj.leafset[i].port;
+        res.ip=node_obj.leafset[min].ip;
+        res.nodeid=node_obj.leafset[min].nodeid;
+        res.port=node_obj.leafset[min].port;
  
         cout<<"result set is res "<<res.ip<<"\n";
         ss<<hex<<res.nodeid;
@@ -780,19 +786,48 @@ void getkey(string key, struct node_data temp_node)
 {
     struct node_data temp_data;
     temp_data.nodeid=key;
+    string temp;
+
+    // if(node_obj.local_hashtable.find(key)!=node_obj.local_hashtable.end())
+    // {
+    //     temp=node_obj.local_hashtable[key];
+    //     sendrequest(temp,temp_node.ip,temp_node.port,6);
+    // }
+
+    for(auto x:node_obj.local_hashtable)
+    {
+        if(generate_md5(x.first).substr(0,8).compare(key)==0)
+        {
+            temp=node_obj.local_hashtable[x.first];
+            sendrequest(temp,temp_node.ip,temp_node.port,6);
+            return;
+        }
+    }
+
     struct node_data final_node=routing(temp_data);
 
-    string temp;
+    
     if(final_node.nodeid.compare(node_obj.nodeid)==0)
     {
-        if(node_obj.local_hashtable.find(key)!=node_obj.local_hashtable.end())
-        {
-            temp=node_obj.local_hashtable[key];
-        }
-        else
+        // if(node_obj.local_hashtable.find(key)!=node_obj.local_hashtable.end())
+        // {
+        //     temp=node_obj.local_hashtable[key];
+        // }
+        // if()
+        // {
+            for(auto x:node_obj.local_hashtable)
+            {
+                if(generate_md5(x.first).substr(0,8).compare(key)==0)
+                {
+                    temp=node_obj.local_hashtable[x.first];
+                    sendrequest(temp,temp_node.ip,temp_node.port,6);
+                    return;
+                }
+            }
+        // }
             temp="Not found";
-
-        sendrequest(temp,temp_node.ip,temp_node.port,6);
+            sendrequest(temp,temp_node.ip,temp_node.port,6);
+                    return;
     }
     else
     {
