@@ -87,6 +87,7 @@ void sendrequest(string message,string buddy_ip,string buddy_port,int control);
 void copy_to_routing_table(struct node_structure received_table);
 void sharetables();
 void getkey(string key, struct node_data temp_node);
+void setkey(string key,string value);
 
 vector<vector<struct node_data>> get_table()
 {
@@ -409,6 +410,10 @@ void processrequest(int cid)
     {
         char BUFFER[BUFFSIZE];
         recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
+        string key,value;
+        stringstream ss(BUFFER);
+        ss>>key>>value;
+        setkey(key,value);
 
 
         
