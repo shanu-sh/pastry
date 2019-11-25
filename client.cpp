@@ -706,7 +706,7 @@ struct node_data routing(struct node_data requesting_node){
         }
         else{
             cout<<"Rare case\n";
-            int flag=0;
+            int flag=0,leafflag=0;
             int difference_min;
             int position;
             int posk;
@@ -743,6 +743,31 @@ struct node_data routing(struct node_data requesting_node){
             }
                    
             }
+            for(int x=0;x<4;x++)
+            {
+                if(node_obj.leafset[x].nodeid.compare("-1")!=0)
+                {
+                    string leafid=node_obj.leafset[x].nodeid;
+                    stringstream ss1,ss2;
+                     int hexval1,hexval2;
+                     ss1<<std::hex<<requesting_node_id<<" ";
+                    ss1>>hexval1;
+                    ss2<<std::hex<<leafid<<" ";
+                    ss2>>hexval2;
+                    int leafmin=abs(hexval1-hexval2);
+                    if(leafmin<difference_min)
+                    {
+                        leafflag=1;
+                        position=x;
+                        difference_min=leafmin;
+
+                    }
+
+
+                }
+            }
+            if(leafflag)
+                return node_obj.leafset[position];
             return node_obj.routing_table[posk][position] ;
         }
     }
@@ -929,16 +954,14 @@ int main(int argc,char **argv)
             cout<<" IP is :"<<input_ip<<endl;
             cout<<"port is : "<<input_port<<endl;
             cout<<" node_id is:"<<node_obj.nodeid<<endl;
-
-        }
-
-        if(choice.compare("create")==0)
-        {
             populatestate();
             int temp=0;
             pthread_create(&id,NULL,server,(void*)&temp);
             pthread_detach(id);
+
         }
+
+        
 
         if(choice.compare("join")==0)
         {
