@@ -473,7 +473,7 @@ void processrequest(int cid)
             // stringstream ss2;
             // ss2<<hex<<generate_md5(x.first).substr(0,8);
             // ss2>>tempval;
-            tempval=original=stoll(generate_md5(x.first).substr(0,8), 0, 16);
+            tempval=stoll(generate_md5(x.first).substr(0,8), 0, 16);
             cout<<tempval<<" "<<newnode<<" "<<original<<"\n";
             if(abs(tempval-newnode)<abs(tempval-original))
             {
@@ -709,7 +709,7 @@ struct node_data routing(struct node_data requesting_node){
             int flag=0;
             int difference_min;
             int position;
-
+            for(int k=i;k<8;k++){
             for(int j=0;j<16;j++) {
                 if(node_obj.routing_table[i][j].nodeid.compare("-1")!=0) {
                      stringstream ss1,ss2;
@@ -735,6 +735,7 @@ struct node_data routing(struct node_data requesting_node){
                         }
                     }
                 }
+            }
                    
             }
             return node_obj.routing_table[i][position] ;
