@@ -438,6 +438,7 @@ void processrequest(int cid)
     else if(command==5)
     {
         //UPDATE YOUR TABLE 
+        cout<<"updating my table\n";
         char BUFFER[BUFFSIZE];
         recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
 
@@ -448,6 +449,41 @@ void processrequest(int cid)
         copy_to_routing_table(temp);
 
         printroutable(node_obj);
+
+        long original,newnode;
+
+        // stringstream ss;
+        // ss<<hex<<node_obj.nodeid;
+        // ss>>original;
+        original=stoll(node_obj.nodeid, 0, 16);
+
+        // stringstream ss1;
+        // ss1<<hex<<temp.nodeid;
+        // ss1>>newnode;
+
+        newnode=stoll(temp.nodeid, 0, 16);
+        string key;
+        string val;
+
+       long tempval;
+       cout<<"\nChecking the hash table \n";
+       cout<<"printing nodeid "<<temp.nodeid<<" "<<node_obj.nodeid<<endl;
+        for(auto x:node_obj.local_hashtable)
+        {
+            // stringstream ss2;
+            // ss2<<hex<<generate_md5(x.first).substr(0,8);
+            // ss2>>tempval;
+            tempval=original=stoll(generate_md5(x.first).substr(0,8), 0, 16);
+            cout<<tempval<<" "<<newnode<<" "<<original<<"\n";
+            if(abs(tempval-newnode)<abs(tempval-original))
+            {
+                key=x.first;
+                val=x.second;
+
+                node_obj.local_hashtable.erase(key);
+                setkey(key,val);
+            }
+        }
     }
 
     else if(command==6)
@@ -673,6 +709,7 @@ struct node_data routing(struct node_data requesting_node){
             int flag=0;
             int difference_min;
             int position;
+
             for(int j=0;j<16;j++) {
                 if(node_obj.routing_table[i][j].nodeid.compare("-1")!=0) {
                      stringstream ss1,ss2;
