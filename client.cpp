@@ -709,14 +709,17 @@ struct node_data routing(struct node_data requesting_node){
             int flag=0;
             int difference_min;
             int position;
+            int posk;
+            if(i>0)
+                i--;
             for(int k=i;k<8;k++){
             for(int j=0;j<16;j++) {
-                if(node_obj.routing_table[i][j].nodeid.compare("-1")!=0) {
+                if(node_obj.routing_table[k][j].nodeid.compare("-1")!=0) {
                      stringstream ss1,ss2;
                      int hexval1,hexval2;
         
                      string requesting_node_id=requesting_node.nodeid;
-                     string routing_table_id=node_obj.routing_table[i][j].nodeid;
+                     string routing_table_id=node_obj.routing_table[k][j].nodeid;
         
                     ss1<<std::hex<<requesting_node_id<<" ";
                     ss1>>hexval1;
@@ -725,6 +728,7 @@ struct node_data routing(struct node_data requesting_node){
                     if(flag==0) { 
                         difference_min = abs(hexval1-hexval2);
                         position = j; 
+                        posk=k;
                         flag=1;
                     }
                     else{
@@ -732,13 +736,14 @@ struct node_data routing(struct node_data requesting_node){
                         if(new_min < difference_min) { 
                             difference_min = new_min;
                             position = j; 
+                            posk=k;
                         }
                     }
                 }
             }
                    
             }
-            return node_obj.routing_table[i][position] ;
+            return node_obj.routing_table[posk][position] ;
         }
     }
 }
