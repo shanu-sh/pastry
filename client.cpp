@@ -532,30 +532,32 @@ void *server(void * arg)
         processrequest(cid);   
     }
 }
+/*
 struct node_data isleaf(struct node_data D){
     /*
      *  returns the node with the maximum matching prefix leaf node
      *  collision if resolved by picking numerically smaller node_data
      */
-    struct node_data minD, maxD, closestD;
+    /*struct node_data minD, maxD, closestD;
 
     minD = node_obj.leafset[0];
     maxD = node_obj.leafset[c/2];
 
     closestD = node_data(node_obj.nodeid, node_obj.ip, node_obj.port);
-    if(minD.nodeid.compare("-1") != 0 and maxD.nodeid.compare("-1") != 0) {//minD and maxD are non null
-        //don't update limits
-    }
-    else if(minD.nodeid.compare("-1") == 0){
-        minD = closestD;
-    }
-    else if(maxD.nodeid.compare("-1") == 0){
-        maxD = closestD;
-    }
-    else {//both minD and maxD are null
-        cout<<"\n------isleaf Error: both minD and maxD are null\nReturning default node";
-        return getdefaul_node();
-    }
+
+    // if(minD.nodeid.compare("-1") != 0 and maxD.nodeid.compare("-1") != 0) {//minD and maxD are non null
+    //     //don't update limits
+    // }
+    // else if(minD.nodeid.compare("-1") == 0){
+    //     minD = closestD;
+    // }
+    // else if(maxD.nodeid.compare("-1") == 0){
+    //     maxD = closestD;
+    // }
+    // else {//both minD and maxD are null
+    //     cout<<"\n------isleaf Error: both minD and maxD are null\nReturning default node";
+    //     return getdefaul_node();
+    // }
 
     if(minD <= D and D <= maxD){
         long long D_val = stoll(D.nodeid, 0, 16);
@@ -575,7 +577,52 @@ struct node_data isleaf(struct node_data D){
         return getdefaul_node();
     }
 }
+*/
 
+struct node_data isleaf(struct node_data D)
+{
+    int flag=0,mindiff;
+
+    int nodeval,dataval,tempval;
+    struct node_data result;
+
+    dataval = stoll(D.nodeid, 0, 16);
+
+    mindiff=INT_MAX;
+    for(auto x:node_obj.leafset)
+    {
+        if(x.nodeid.compare("-1")!=0)
+        {
+            flag=1;
+            nodeval = stoll(node_obj.nodeid, 0, 16);
+            cout<<"itself id is "<<node_obj.nodeid<<" with int val "<<nodeval<<endl;
+            cout<<"data id is "<<D.nodeid<<" with int val "<<dataval<<endl;
+            mindiff=abs(dataval-nodeval);
+            result=node_data(node_obj.nodeid,node_obj.ip,node_obj.port);
+            break;
+        }
+    }
+    cout<<"difference with itself "<<mindiff<<endl;
+    for(auto x:node_obj.leafset)
+    {
+        if(x.nodeid.compare("-1")!=0)
+        {
+            tempval = stoll(x.nodeid, 0, 16);
+            cout<<"difference with "<<x.port<<" "<<abs(dataval-tempval)<<endl;
+            if(abs(dataval-tempval)<mindiff)
+            {
+                mindiff=abs(dataval-tempval);
+                cout<<"mindiff updated with "<<x.port<<endl<<"with difference "<<mindiff;
+                cout<<"min id is "<<x.nodeid<<" with int val "<<tempval<<endl;
+                result=x;
+            }
+        }
+    }
+
+    if(flag==0)
+        return getdefaul_node();  
+    return result; 
+}
 void populatestate()
 {
     int i=0,j;
@@ -834,7 +881,7 @@ void getkey(string key, struct node_data temp_node)
     }
 
     struct node_data final_node=routing(temp_data);
-
+    //cout<<"routing ne diya"<<final_node.nodeid<<"\n";
     
     if(final_node.nodeid.compare(node_obj.nodeid)==0)
     {
