@@ -144,7 +144,7 @@ void update_leaf_set(struct node_structure received_node){
     if(recv_node < curr_node){
         lesser_nodes.insert(recv_node);
     }
-    else{
+    else if(recv_node > curr_node){
         greater_nodes.insert(recv_node);
     }
 
@@ -154,7 +154,7 @@ void update_leaf_set(struct node_structure received_node){
         if(u < curr_node){
             lesser_nodes.insert(u);
         }
-        else{
+        else if( u > curr_node){
             greater_nodes.insert(u);
         }
     }
@@ -164,7 +164,7 @@ void update_leaf_set(struct node_structure received_node){
         if(u < curr_node){
             lesser_nodes.insert(u);
         }
-        else{
+        else if(u > curr_node){
             greater_nodes.insert(u);
         }
     }
@@ -177,7 +177,6 @@ void update_leaf_set(struct node_structure received_node){
         node_obj.leafset[i++] = it;
         if(i==c) break;
     }
-
 }
 
 // function to serialize state tables
