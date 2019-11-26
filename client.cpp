@@ -97,13 +97,13 @@ vector<vector<struct node_data>> get_table()
 
 std::vector<struct node_data> getleaf()
 {
-    std::vector<struct node_data> leafset(4,getdefaul_node());
+    std::vector<struct node_data> leafset(16,getdefaul_node());
     return leafset;
 }
 
 std::vector<struct node_data> getneighbour()
 {
-    std::vector<struct node_data> neighbourhoodset(4,getdefaul_node());
+    std::vector<struct node_data> neighbourhoodset(16,getdefaul_node());
     return neighbourhoodset;
 }
 
@@ -160,11 +160,11 @@ void update_leaf_set(struct node_structure received_node){
     int i=0;
     for(auto it : lesser_nodes){
         node_obj.leafset[i++] = it;
-        if(i==4) break;
+        if(i==8) break;
     }
     for(auto it : greater_nodes){
         node_obj.leafset[i++] = it;
-        if(i==8) break;
+        if(i==16) break;
     }
 
 }
@@ -179,7 +179,7 @@ string serialize_tables(struct node_structure sending_node)
     string routing_table_str="";
 
     int i=0;
-    while(i<4)
+    while(i<16)
     {
         leafset_str+=sending_node.leafset[i].nodeid;
         leafset_str+=":"+sending_node.leafset[i].ip;
@@ -187,7 +187,7 @@ string serialize_tables(struct node_structure sending_node)
         i++;
     }
     i=0;
-    while(i<4)
+    while(i<16)
     {
         neighbourhoodset_str+=sending_node.neighbourhoodset[i].nodeid;
         neighbourhoodset_str+=":"+sending_node.neighbourhoodset[i].ip;
@@ -222,7 +222,7 @@ struct node_structure deserialize_tables(string serialstring)
     temp.ip=serialstring_vec[0],temp.port=serialstring_vec[1],temp.nodeid= serialstring_vec[2];
 
     int i=3,j=0;
-    while(i<(12+3))
+    while(i<(48+3))
     {
         if((i%3)==0)
         temp.leafset[j].nodeid=serialstring_vec[i];
@@ -234,7 +234,7 @@ struct node_structure deserialize_tables(string serialstring)
         i++;
     }
     j=0;
-    while(i<(24+3))
+    while(i<(96+3))
     {
         if((i%3)==0)
         temp.neighbourhoodset[j].nodeid=serialstring_vec[i];
@@ -248,7 +248,7 @@ struct node_structure deserialize_tables(string serialstring)
     }
     j=0;
     int k=0;
-    while(i<(408+3) && j<8)
+    while(i<(408+3+72) && j<8)
     {
         if((i%3)==0)
         temp.routing_table[j][k].nodeid=serialstring_vec[i];
@@ -743,7 +743,7 @@ struct node_data routing(struct node_data requesting_node){
             }
                    
             }
-            for(int x=0;x<4;x++)
+            for(int x=0;x<16;x++)
             {
                 if(node_obj.leafset[x].nodeid.compare("-1")!=0)
                 {
