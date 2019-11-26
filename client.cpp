@@ -558,7 +558,7 @@ struct node_data isleaf(struct node_data D){
         return getdefaul_node();
     }
 
-    if(minD <= D and D >= maxD){
+    if(minD <= D and D <= maxD){
         long long D_val = stoll(D.nodeid, 0, 16);
         for(auto u : node_obj.leafset){
             if(u.nodeid.compare("-1") == 0) continue;
