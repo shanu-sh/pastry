@@ -21,8 +21,8 @@
 
 using namespace std;
 
-const int LEAF_SIZE = 8;
-const int NEIGHBOURS_SIZE = 8;
+const int r = 8;//ro
+const int c = 16;//cols in routing table
 
 std::string extractPublicIP(){
     struct ifaddrs *ifaddr, *ifa;
@@ -59,6 +59,19 @@ struct node_data
 inline bool operator < (const node_data& lhs, const node_data& rhs){
     return stoll(lhs.nodeid, 0 , 16) < stoll(rhs.nodeid, 0, 16);
 }
+inline bool operator > (const node_data& lhs, const node_data& rhs){
+    return stoll(lhs.nodeid, 0, 16) > stoll(rhs.nodeid, 0, 16);
+}
+inline bool operator == (const node_data& lhs, const node_data& rhs){
+    return stoll(lhs.nodeid, 0, 16) == stoll(rhs.nodeid, 0, 16);
+}
+inline bool operator <= (const node_data& lhs, const node_data& rhs){
+    return (lhs < rhs) or (lhs == rhs);
+}
+inline bool operator >= (const node_data& lhs, const node_data& rhs){
+    return (lhs > rhs) or (lhs == rhs);
+}
+
 
 struct node_data getdefaul_node()
 {
@@ -91,19 +104,19 @@ void setkey(string key,string value);
 
 vector<vector<struct node_data>> get_table()
 {
-    vector<vector<struct node_data>> v(8,vector<struct node_data>(16,getdefaul_node()));
+    vector<vector<struct node_data>> v(r,vector<struct node_data>(c, getdefaul_node()));
     return  v;
 }
 
 std::vector<struct node_data> getleaf()
 {
-    std::vector<struct node_data> leafset(16,getdefaul_node());
+    std::vector<struct node_data> leafset(c,getdefaul_node());
     return leafset;
 }
 
 std::vector<struct node_data> getneighbour()
 {
-    std::vector<struct node_data> neighbourhoodset(16,getdefaul_node());
+    std::vector<struct node_data> neighbourhoodset(c,getdefaul_node());
     return neighbourhoodset;
 }
 
@@ -112,7 +125,6 @@ struct node_structure{
     string port;
     string nodeid;
     struct node_data defaul = getdefaul_node();
-    int n=4;
     vector<vector<struct node_data>> routing_table=get_table();
     std::vector<struct node_data> leafset=getleaf();
     std::vector<struct node_data> neighbourhoodset=getneighbour();
@@ -121,11 +133,10 @@ struct node_structure{
 
 struct node_structure node_obj;
 void printroutable(struct node_structure node_obj);
-int b;
 
 void update_leaf_set(struct node_structure received_node){
-    set<node_data, greater_than_cmp> lesser_nodes;//stored in descending order
-    set<node_data, less_than_cmp> greater_nodes;//stored in ascending order
+    set<node_data, less_than_cmp> lesser_nodes;
+    set<node_data, greater_than_cmp> greater_nodes;
     node_data curr_node = node_data(node_obj.nodeid, node_obj.ip, node_obj.port);
     node_data recv_node = node_data(received_node.nodeid, received_node.ip, received_node.port);
 
@@ -160,11 +171,11 @@ void update_leaf_set(struct node_structure received_node){
     int i=0;
     for(auto it : lesser_nodes){
         node_obj.leafset[i++] = it;
-        if(i==8) break;
+        if(i==c/2) break;
     }
     for(auto it : greater_nodes){
         node_obj.leafset[i++] = it;
-        if(i==16) break;
+        if(i==c) break;
     }
 
 }
@@ -179,7 +190,7 @@ string serialize_tables(struct node_structure sending_node)
     string routing_table_str="";
 
     int i=0;
-    while(i<16)
+    while(i<c)
     {
         leafset_str+=sending_node.leafset[i].nodeid;
         leafset_str+=":"+sending_node.leafset[i].ip;
@@ -187,16 +198,16 @@ string serialize_tables(struct node_structure sending_node)
         i++;
     }
     i=0;
-    while(i<16)
+    while(i<c)
     {
         neighbourhoodset_str+=sending_node.neighbourhoodset[i].nodeid;
         neighbourhoodset_str+=":"+sending_node.neighbourhoodset[i].ip;
         neighbourhoodset_str+=":"+sending_node.neighbourhoodset[i].port+":";
         i++;
     }
-    for(i =0;i<8;i++)
+    for(i =0;i<r;i++)
     {
-        for(int j=0;j<16;j++)
+        for(int j=0;j<c;j++)
         {
             //cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" "<<node_obj.routing_table[i][j].port<<" \t";
             routing_table_str+=node_obj.routing_table[i][j].nodeid+":"+node_obj.routing_table[i][j].ip+":"+node_obj.routing_table[i][j].port+":";
@@ -522,95 +533,55 @@ void *server(void * arg)
         processrequest(cid);   
     }
 }
+struct node_data isleaf(struct node_data D){
+    /*
+     *  returns the node with the maximum matching prefix leaf node
+     *  collision if resolved by picking numerically smaller node_data
+     */
+    struct node_data minD, maxD, closestD;
 
-struct node_data isleaf(struct node_data node)
-{
-    long i,j,id,mdiff,temp;
-    long lower=-1,upper=-1;
+    minD = node_obj.leafset[0];
+    maxD = node_obj.leafset[c/2];
 
-    
-    node_data default_node=getdefaul_node();
-    node_data res;
-
-    stringstream ss;
-
-    if(node_obj.leafset[0].nodeid.compare("-1")==0)
-        return getdefaul_node();
-    
-    int min=INT_MAX,count=0;
-    for(auto x:node_obj.leafset)
-    {
-        count++;
-        if(x.nodeid.compare(default_node.nodeid)!=0)
-        {
-            if(lower==-1)
-            {
-                cout<<"lower is "<<x.nodeid<<"\n";
-                ss<<hex<<x.nodeid;
-                ss>>i;
-                lower=1;
-                upper=1;
-                j=i;
-                if(min>count)
-                    min=count;
-            }
-            else if(lower==1)
-            {
-                cout<<"upper is "<<x.nodeid<<"\n";
-                stringstream ss2;
-                ss2<<hex<<x.nodeid;
-                ss2>>j;
-                upper=j;
-            }
-        }
+    closestD = node_data(node_obj.nodeid, node_obj.ip, node_obj.port);
+    if(minD.nodeid.compare("-1") != 0 and maxD.nodeid.compare("-1") != 0) {//minD and maxD are non null
+        //don't update limits
     }
-
-    if(lower ==-1 && upper==-1)
-        return default_node;
-
-    stringstream ss1;
-    ss1<<hex<<node.nodeid;
-    ss1>>id;
-
-    cout<<"node id is "<<node.nodeid<<"\n";
-    cout<<"id is "<<id<<" i is "<<i<< " j is "<<j <<"\n";
-    if(id>=i&&id<=j)
-    {
-        
-        res.ip=node_obj.leafset[min].ip;
-        res.nodeid=node_obj.leafset[min].nodeid;
-        res.port=node_obj.leafset[min].port;
- 
-        cout<<"result set is res "<<res.ip<<"\n";
-        ss<<hex<<res.nodeid;
-        ss>>temp;
-        mdiff=abs(temp-id);
-        
-
-        for(auto x:node_obj.leafset)
-        {
-            ss<<hex<<x.nodeid;
-            ss>>temp;
-            if(abs(id-temp)<mdiff)
-            {
-                mdiff=abs(id-temp);
-                res=x;
-            }
-        }
+    else if(minD.nodeid.compare("-1") == 0){
+        minD = closestD;
     }
-    else
-    {
+    else if(maxD.nodeid.compare("-1") == 0){
+        maxD = closestD;
+    }
+    else {//both minD and maxD are null
+        cout<<"\n------isleaf Error: both minD and maxD are null\nReturning default node";
         return getdefaul_node();
     }
-    
-    return res;
+
+    if(minD <= D and D >= maxD){
+        long long D_val = stoll(D.nodeid, 0, 16);
+        for(auto u : node_obj.leafset){
+            if(u.nodeid.compare("-1") == 0) continue;
+            long long u_val = stoll(u.nodeid, 0, 16);
+            long long closest_val = stoll(closestD.nodeid, 0, 16);
+
+            if(abs(D_val - u_val) < abs(closest_val - D_val)){
+                closestD = u;
+            }
+        }
+        return closestD;
+    }
+    else{
+        cout<<"\n------isleaf: Returning default node";
+        return getdefaul_node();
+    }
 }
 
 void populatestate()
 {
     int i=0,j;
     
-    while(i<8)
+    while(i<r)
     {
         stringstream ss;
 
@@ -625,15 +596,6 @@ void populatestate()
         node_obj.routing_table[i][j]=temp;
         i++;
     }
-
-    // for(i =0;i<8;i++)
-    // {
-    //     for(j=0;j<16;j++)
-    //     {
-    //         cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" "<<node_obj.routing_table[i][j].port<<" \t";
-    //     }
-    //     cout<<"\n";
-    // }
 
     printroutable(node_obj);
    
@@ -673,8 +635,8 @@ void sendrequest(string message,string buddy_ip,string buddy_port,int control)
 }
 
 struct node_data routing(struct node_data requesting_node){
-    
-    struct node_data requesting_node_leaf = isleaf(requesting_node); 
+
+    struct node_data requesting_node_leaf = isleaf(requesting_node);
     cout<<"requesting node leaf is "<<requesting_node_leaf.nodeid<<"\n";
     if( requesting_node_leaf.nodeid.compare("-1")!=0){
         cout<<"in leaf\n";
@@ -683,7 +645,7 @@ struct node_data routing(struct node_data requesting_node){
     else{
         cout<<"Not in leaf\n";
         int i=0;
-        for( i=0;i<8;i++){
+        for( i=0;i<r;i++){
             if(node_obj.nodeid[i]!=requesting_node.nodeid[i]){
                 break;
             }
@@ -712,8 +674,8 @@ struct node_data routing(struct node_data requesting_node){
             int posk;
             if(i>0)
                 i--;
-            for(int k=i;k<8;k++){
-            for(int j=0;j<16;j++) {
+            for(int k=i;k<r;k++){
+            for(int j=0;j<c;j++) {
                 if(node_obj.routing_table[k][j].nodeid.compare("-1")!=0) {
                      stringstream ss1,ss2;
                      int hexval1,hexval2;
@@ -743,7 +705,7 @@ struct node_data routing(struct node_data requesting_node){
             }
                    
             }
-            for(int x=0;x<16;x++)
+            for(int x=0;x<c;x++)
             {
                 if(node_obj.leafset[x].nodeid.compare("-1")!=0)
                 {
@@ -776,9 +738,9 @@ void printroutable(struct node_structure node_obj)
 {
     cout<<endl<<"my node id is :"<<node_obj.nodeid<<endl;
     cout<<node_obj.ip<<" "<<node_obj.port<<"\n";
-    for(int i =0;i<8;i++)
+    for(int i =0;i<r;i++)
     {
-        for(int j=0;j<16;j++)
+        for(int j=0;j<c;j++)
         {
             cout<<node_obj.routing_table[i][j].ip<<" "<<node_obj.routing_table[i][j].nodeid<<" "<<node_obj.routing_table[i][j].port<<" \t";
         }
@@ -789,13 +751,13 @@ void printroutable(struct node_structure node_obj)
 void copy_to_routing_table(struct node_structure received_table)
 {   
     int i=0;
-    for (i=0; i<8; i++){
+    for (i=0; i<r; i++){
          if(node_obj.nodeid[i]!=received_table.nodeid[i]){
             break;
          }
     }
     //<<"copying\n";
-    for(int j=0; j<16; j++)
+    for(int j=0; j<c; j++)
     {
         // cout<<"Node id is "<<node_obj.nodeid<<"\n";
         // cout<<"recived table id "<<received_table.nodeid<<"\n";
