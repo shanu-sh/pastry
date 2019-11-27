@@ -425,7 +425,6 @@ void processrequest(int cid)
         ss>>key>>value;
         setkey(key,value);
 
-
         
     }
 
@@ -503,6 +502,17 @@ void processrequest(int cid)
         recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
 
         cout<<BUFFER<<"\n";
+    }
+    else if(command==7)
+    {
+        //Received command to exit node
+        char BUFFER[BUFFSIZE];
+        recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
+        stringstream ss(BUFFER);
+        string key,value;
+        ss>>key>>value;
+        node_obj.local_hashtable[key]=value;
+        cout<<"Value setted \n";
     }
 }
 
@@ -941,6 +951,48 @@ void printhash()
     }
 }
 
+void shutdown()
+{
+    int dataval,nodeval,mindiff;
+    mindiff=INT_MAX;
+    int flag=0;
+    struct node_data result;
+    cout<<"Shutting down node\n";
+    for(auto y:node_obj.local_hashtable)
+    {
+        cout<<y.first<<" "<<y.second<<"\n";
+        dataval = stoll(y.first, 0, 16);
+        for(auto x:node_obj.leafset)
+        {
+            if(x.nodeid.compare("-1")!=0)
+            {
+                if(flag==0)
+                {
+                    nodeval = stoll(x.nodeid, 0, 16);
+                    // cout<<"itself id is "<<node_obj.nodeid<<" with int val "<<nodeval<<endl;
+                    // cout<<"data id is "<<D.nodeid<<" with int val "<<dataval<<endl;
+                    mindiff=abs(dataval-nodeval);
+                    result=node_data(x.nodeid,x.ip,x.port);
+                    flag=1;
+                }
+                if(flag==1)
+                {
+                    nodeval = stoll(x.nodeid, 0, 16);
+                    if(mindiff<abs(dataval-nodeval))
+                    {
+                        mindiff=abs(dataval-nodeval);
+                        result=node_data(x.nodeid,x.ip,x.port);
+                    }
+                }
+            }
+            
+        } 
+        sendrequest(y.first+" "+y.second,result.ip,result.port,7);
+        node_obj.local_hashtable.erase(y.first);
+           
+    }
+}
+
 int main(int argc,char **argv)
 {
     
@@ -951,6 +1003,7 @@ int main(int argc,char **argv)
     while(1)
     {
         cin>>choice;
+        cout<<choice<<"\n";
         if(choice.compare("port")==0)
         {
             string input_port;
@@ -1013,6 +1066,11 @@ int main(int argc,char **argv)
         if(choice.compare("printhash")==0)
         {
             printhash();
+        }
+        if(choice.compare("shutdown")==0)
+        {
+            cout<<"Shut down calling\n";
+            shutdown();
         }
     }
 }
