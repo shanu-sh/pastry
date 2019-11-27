@@ -514,6 +514,32 @@ void processrequest(int cid)
         node_obj.local_hashtable[key]=value;
         cout<<"Value setted \n";
     }
+    else if(command==8)
+    {
+        char BUFFER[BUFFSIZE];
+        recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
+
+        string  id(BUFFER);
+
+        for(int i=0;i<c;i++)
+        {
+            if(node_obj.leafset[i].nodeid.compare(id)==0)
+            {
+                node_obj.leafset[i]=getdefaul_node();
+            }
+        }
+
+        for(int i=0;i<r;i++)
+        {
+            for(int j=0;j<c;j++)
+            {
+                if(node_obj.routing_table[i][j].nodeid.compare(id)==0)
+                {
+                    node_obj.routing_table[i][j]=getdefaul_node();
+                }
+            }
+        }
+    }
 }
 
 void *server(void * arg)
@@ -951,6 +977,45 @@ void printhash()
     }
 }
 
+void removeme()
+{
+    set<struct node_data,less_than_cmp> data;
+
+    for(auto x:node_obj.leafset)
+    {
+        if(x.nodeid.compare("-1")!=0)
+        {
+            data.insert(x);
+        }
+    }
+
+    for(auto x:node_obj.neighbourhoodset)
+    {
+        if(x.nodeid.compare("-1")!=0)
+        {
+            data.insert(x);
+        }
+    }
+
+    for(auto x:node_obj.routing_table)
+    {
+        for(auto y:x)
+        {
+            if(y.nodeid.compare("-1")!=0&&y.nodeid.compare(node_obj.nodeid)!=0)
+            {
+                data.insert(y);
+            }
+        }
+    }
+
+    for(auto x:data)
+    {
+        sendrequest(node_obj.nodeid,x.ip,x.port,8);
+    }
+    cout<<"Bye...\n";
+    exit(1);
+}
+
 void shutdown()
 {
     int dataval,nodeval,mindiff;
@@ -991,6 +1056,7 @@ void shutdown()
         node_obj.local_hashtable.erase(y.first);
            
     }
+    removeme();
 }
 
 int main(int argc,char **argv)
@@ -1003,7 +1069,6 @@ int main(int argc,char **argv)
     while(1)
     {
         cin>>choice;
-        cout<<choice<<"\n";
         if(choice.compare("port")==0)
         {
             string input_port;
