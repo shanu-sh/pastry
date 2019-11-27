@@ -1091,12 +1091,13 @@ void shutdown()
                 }
             }
             
-        } 
+        }
         cout<<"key is going to"<<result.ip<<" "<<result.port<<endl;
         sendrequest(y.first+" "+y.second,result.ip,result.port,7);
-        node_obj.local_hashtable.erase(y.first);
-           
+        //node_obj.local_hashtable.erase(y.first);
+        cout<<"value sent\n";  
     }
+    cout<<"Calling remove me\n";
     removeme();
 }
 void duplicate_key(string key,string value)
