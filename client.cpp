@@ -477,8 +477,8 @@ void processrequest(int cid)
         string val;
 
        ll tempval;
-       cout<<"\nChecking the hash table \n";
-       cout<<"printing nodeid "<<temp.nodeid<<" "<<node_obj.nodeid<<endl;
+       //cout<<"\nChecking the hash table \n";
+       //cout<<"printing nodeid "<<temp.nodeid<<" "<<node_obj.nodeid<<endl;
         for(auto x:node_obj.local_hashtable)
         {
             // stringstream ss2;
@@ -635,25 +635,25 @@ struct node_data isleaf(struct node_data D)
         {
             flag=1;
             nodeval = stoll(node_obj.nodeid, 0, 16);
-            cout<<"itself id is "<<node_obj.nodeid<<" with int val "<<nodeval<<endl;
-            cout<<"data id is "<<D.nodeid<<" with int val "<<dataval<<endl;
+            //cout<<"itself id is "<<node_obj.nodeid<<" with int val "<<nodeval<<endl;
+            //cout<<"data id is "<<D.nodeid<<" with int val "<<dataval<<endl;
             mindiff=abs(dataval-nodeval);
             result=node_data(node_obj.nodeid,node_obj.ip,node_obj.port);
             break;
         }
     }
-    cout<<"difference with itself "<<mindiff<<endl;
+    //cout<<"difference with itself "<<mindiff<<endl;
     for(auto x:node_obj.leafset)
     {
         if(x.nodeid.compare("-1")!=0)
         {
             tempval = stoll(x.nodeid, 0, 16);
-            cout<<"difference with "<<x.port<<" "<<abs(dataval-tempval)<<endl;
+            //cout<<"difference with "<<x.port<<" "<<abs(dataval-tempval)<<endl;
             if(abs(dataval-tempval)<mindiff)
             {
                 mindiff=abs(dataval-tempval);
-                cout<<"mindiff updated with "<<x.port<<endl<<"with difference "<<mindiff;
-                cout<<"min id is "<<x.nodeid<<" with int val "<<tempval<<endl;
+                //cout<<"mindiff updated with "<<x.port<<endl<<"with difference "<<mindiff;
+                //cout<<"min id is "<<x.nodeid<<" with int val "<<tempval<<endl;
                 result=x;
             }
         }
@@ -746,13 +746,13 @@ int sendrequest(string message,string buddy_ip,string buddy_port,int control)
 struct node_data routing(struct node_data requesting_node){
 
     struct node_data requesting_node_leaf = isleaf(requesting_node);
-    cout<<"requesting node leaf is "<<requesting_node_leaf.nodeid<<"\n";
+    //cout<<"requesting node leaf is "<<requesting_node_leaf.nodeid<<"\n";
     if( requesting_node_leaf.nodeid.compare("-1")!=0){
-        cout<<"in leaf\n";
+        //cout<<"in leaf\n";
         return requesting_node_leaf;
     }
     else{
-        cout<<"Not in leaf\n";
+        //cout<<"Not in leaf\n";
         int i=0;
         for( i=0;i<r;i++){
             if(node_obj.nodeid[i]!=requesting_node.nodeid[i]){
@@ -771,12 +771,12 @@ struct node_data routing(struct node_data requesting_node){
         ss>>hexval;
         
         if(node_obj.routing_table[i][hexval].nodeid.compare("-1")!=0){
-            cout<<"Found in routing table\n";
+            //cout<<"Found in routing table\n";
 
             return node_obj.routing_table[i][hexval] ;
         }
         else{
-            cout<<"Rare case\n";
+            //cout<<"Rare case\n";
             int flag=0,leafflag=0;
             int difference_min;
             int position;
@@ -845,8 +845,8 @@ struct node_data routing(struct node_data requesting_node){
 }
 void printroutable(struct node_structure node_obj)
 {
-    cout<<endl<<"my node id is :"<<node_obj.nodeid<<endl;
-    cout<<node_obj.ip<<" "<<node_obj.port<<"\n";
+    //cout<<endl<<"my node id is :"<<node_obj.nodeid<<endl;
+    //cout<<node_obj.ip<<" "<<node_obj.port<<"\n";
     for(int i =0;i<r;i++)
     {
         for(int j=0;j<c;j++)
@@ -879,12 +879,12 @@ void copy_to_routing_table(struct node_structure received_table)
             }
         }
     }
-    cout<<"Copy complete\n";
+    //cout<<"Copy complete\n";
 }
 
 void sharetables()
 {
-    cout<<"Inside share\n";
+    //cout<<"Inside share\n";
     set<struct node_data,less_than_cmp> data;
 
     for(auto x:node_obj.leafset)
@@ -1059,32 +1059,32 @@ void shutdown()
     cout<<"Shutting down node\n";
     for(auto y:node_obj.local_hashtable)
     {
-        cout<<y.first<<" "<<y.second<<"\n";
+        //cout<<y.first<<" "<<y.second<<"\n";
         dataval = stoll(generate_md5(y.first).substr(0,8), 0, 16);
-        cout<<"dataval is "<<dataval<<endl;
+        //cout<<"dataval is "<<dataval<<endl;
         flag=0;
         for(auto x:node_obj.leafset)
         {
-            cout<<"leaf node is "<<x.port<<endl;
+           // cout<<"leaf node is "<<x.port<<endl;
             if(x.nodeid.compare("-1")!=0)
             {
                 if(flag==0)
                 {
                     nodeval = stoll(x.nodeid, 0, 16);
-                    cout<<"first leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
+                    //cout<<"first leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
                     // cout<<"data id is "<<D.nodeid<<" with int val "<<dataval<<endl;
                     mindiff=abs(dataval-nodeval);
-                    cout<<"mindiff is "<<mindiff<<endl;
+                    //cout<<"mindiff is "<<mindiff<<endl;
                     result=node_data(x.nodeid,x.ip,x.port);
                     flag=1;
                 }
                 if(flag==1)
                 {
                     nodeval = stoll(x.nodeid, 0, 16);   
-                    cout<<"leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
+                    //cout<<"leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
                     if(mindiff>abs(dataval-nodeval))
                     {
-                        cout<<"mindiff is "<<mindiff<<endl;
+                        //cout<<"mindiff is "<<mindiff<<endl;
                         mindiff=abs(dataval-nodeval);
                         result=node_data(x.nodeid,x.ip,x.port);
                     }
@@ -1092,12 +1092,12 @@ void shutdown()
             }
             
         }
-        cout<<"key is going to"<<result.ip<<" "<<result.port<<endl;
+        //cout<<"key is going to"<<result.ip<<" "<<result.port<<endl;
         sendrequest(y.first+" "+y.second,result.ip,result.port,7);
         //node_obj.local_hashtable.erase(y.first);
-        cout<<"value sent\n";  
+        //cout<<"value sent\n";  
     }
-    cout<<"Calling remove me\n";
+    //cout<<"Calling remove me\n";
     removeme();
 }
 void duplicate_key(string key,string value)
@@ -1107,32 +1107,32 @@ void duplicate_key(string key,string value)
     struct node_data result;
     int flag=0;
     dataval=stoll(generate_md5(key).substr(0,8),0,16);
-    cout<<"IN duplicate with key "<<key<<" "<< value<<"\n";
+    //cout<<"IN duplicate with key "<<key<<" "<< value<<"\n";
     for(auto x:node_obj.leafset)
         {
-            cout<<"leaf node is "<<x.port<<endl;
+            //cout<<"leaf node is "<<x.port<<endl;
             if(x.nodeid.compare("-1")!=0)
             {
                 if(flag==0)
                 {
                     nodeval = stoll(x.nodeid, 0, 16);
-                    cout<<"first leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
+                    //cout<<"first leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
                     // cout<<"data id is "<<D.nodeid<<" with int val "<<dataval<<endl;
                     mindiff=abs(dataval-nodeval);
-                    cout<<"mindiff is "<<mindiff<<endl;
+                    //cout<<"mindiff is "<<mindiff<<endl;
                     result=node_data(x.nodeid,x.ip,x.port);
                     flag=1;
                 }
                 else if(flag==1)
                 {
                     nodeval = stoll(x.nodeid, 0, 16);   
-                    cout<<"leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
+                    //cout<<"leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
                     if(mindiff>abs(dataval-nodeval))
                     {
-                        cout<<"mindiff is "<<mindiff<<endl;
+                        //cout<<"mindiff is "<<mindiff<<endl;
                         mindiff=abs(dataval-nodeval);
                         result=node_data(x.nodeid,x.ip,x.port);
-                        cout<<"result is "<<result.port<<endl;
+                        //cout<<"result is "<<result.port<<endl;
                     }
                 }
             }
@@ -1168,22 +1168,20 @@ int main(int argc,char **argv)
             pthread_create(&id,NULL,server,(void*)&temp);
             pthread_detach(id);
 
-        }
-
-        
+        }      
 
         if(choice.compare("join")==0)
         {
             string buddy_ip,buddy_port,temp;
             cin>>buddy_ip>>buddy_port;
             temp=node_obj.nodeid+" "+node_obj.ip+" "+node_obj.port;
-            cout<<"temp is "<<temp<<"\n";
+            //cout<<"temp is "<<temp<<"\n";
             sendrequest(temp,buddy_ip,buddy_port,0);
         }
         if(choice.compare("serialize")==0)
         {
             string a=serialize_tables(node_obj);
-            cout<<"a is "<<a;
+            //cout<<"a is "<<a;
             deserialize_tables(a);
         }
         if(choice.compare("printroutable")==0)
