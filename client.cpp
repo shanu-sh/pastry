@@ -97,7 +97,7 @@ public:
 };
 
 struct node_data routing(struct node_data requesting_node);
-void sendrequest(string message,string buddy_ip,string buddy_port,int control);
+int sendrequest(string message,string buddy_ip,string buddy_port,int control);
 void copy_to_routing_table(struct node_structure received_table);
 void sharetables();
 void getkey(string key, struct node_data temp_node);
@@ -228,7 +228,7 @@ struct node_structure deserialize_tables(string serialstring)
 {
     
     std::vector<string> serialstring_vec=splitstring(serialstring,':');
-    cout<<"size is "<<serialstring_vec.size()<<endl;
+    //cout<<"size is "<<serialstring_vec.size()<<endl;
     struct node_structure temp;
     temp.ip=serialstring_vec[0],temp.port=serialstring_vec[1],temp.nodeid= serialstring_vec[2];
 
@@ -310,7 +310,7 @@ void processrequest(int cid)
         stringstream ss(buffer);
         ss>>nodedata.nodeid>>nodedata.ip>>nodedata.port;
 
-        cout<<"Buffer is "<<buffer<<"\n";
+        //cout<<"Buffer is "<<buffer<<"\n";
         struct node_data final_node=routing(nodedata);
         
         string temp="";
@@ -361,13 +361,13 @@ void processrequest(int cid)
         cout<<buddy<<" "<<termination<<" "<<hopcount<<"\n";
 
         update_leaf_set(temp);
-        printleaf();
+        //printleaf();
 
         copy_to_routing_table(temp);
 
         cout<<"Your updating table\n";
 
-        printroutable(node_obj);
+        //printroutable(node_obj);
 
         if(termination==1)
         {
@@ -458,7 +458,7 @@ void processrequest(int cid)
 
         copy_to_routing_table(temp);
 
-        printroutable(node_obj);
+        //printroutable(node_obj);
 
         ll original,newnode;
 
@@ -491,7 +491,9 @@ void processrequest(int cid)
                 val=x.second;
 
                 node_obj.local_hashtable.erase(key);
-                setkey(key,val);
+                //setkey(key,val);
+                sendrequest(key+" "+val,temp.ip,temp.port,7);
+                cout<<"key "<<key<<" is going away from me to "<<temp.port<<endl;
             }
         }
     }
@@ -680,12 +682,33 @@ void populatestate()
         i++;
     }
 
-    printroutable(node_obj);
+    //printroutable(node_obj);
    
 }
 
+void repair(string departure_node_ip,string departure_node_port)
+{
+    for(int i=0;i<c;i++)
+        {
+            if(node_obj.leafset[i].port.compare(departure_node_port)==0)
+            {
+                node_obj.leafset[i]=getdefaul_node();
+            }
+        }
 
-void sendrequest(string message,string buddy_ip,string buddy_port,int control)
+        for(int i=0;i<r;i++)
+        {
+            for(int j=0;j<c;j++)
+            {
+                if(node_obj.routing_table[i][j].port.compare(departure_node_port)==0)
+                {
+                    node_obj.routing_table[i][j]=getdefaul_node();
+                }
+            }
+        }
+        cout<<"in repair and reparing done"<<endl;
+}
+int sendrequest(string message,string buddy_ip,string buddy_port,int control)
 {
     int sockid,status;
     string temp="";
@@ -694,7 +717,7 @@ void sendrequest(string message,string buddy_ip,string buddy_port,int control)
     if(sockid<0)
     {
         perror("Error in socket creation\n");
-        return;
+        return -1;
     }
 
     cout<<"Buddy port "<<buddy_port<<"\n";
@@ -708,13 +731,15 @@ void sendrequest(string message,string buddy_ip,string buddy_port,int control)
     if(status<0)
     {
         perror("Unable to reach server\n");
-        return;  
+        repair(buddy_ip,buddy_port);
+        return -1;  
     }
 
     send(sockid,(const void*)&control,sizeof(control),0);
     char data[BUFFSIZE];
     strcpy(data,message.c_str());
     send(sockid,(const void*)data,BUFFSIZE,0);
+    return 1;
 }
 
 struct node_data routing(struct node_data requesting_node){
@@ -944,7 +969,10 @@ void getkey(string key, struct node_data temp_node)
     }
     else
     {
-        sendrequest(key+" "+temp_node.ip+" "+temp_node.port,final_node.ip,final_node.port,4);
+        if(sendrequest(key+" "+temp_node.ip+" "+temp_node.port,final_node.ip,final_node.port,4)<0)
+        {
+            getkey(key,temp_node);
+        }
     }
     
 }
@@ -954,7 +982,7 @@ void setkey(string key,string value)
 {
     string hashkey = generate_md5(key);
     hashkey = hashkey.substr(0,8);
-    cout<<"hashvalue of key is "<<hashkey<<endl;
+    //cout<<"hashvalue of key is "<<hashkey<<endl;
     struct node_data key_obj;
     key_obj.nodeid=hashkey;
     struct node_data final_key_des=routing(key_obj);
@@ -966,7 +994,10 @@ void setkey(string key,string value)
     }
     else{
         string msg=key+" "+value;
-        sendrequest(msg,final_key_des.ip,final_key_des.port,3);
+        if(sendrequest(msg,final_key_des.ip,final_key_des.port,3)==-1)
+        {
+            setkey(key,value);
+        }
     }
 
 }
@@ -1066,7 +1097,47 @@ void shutdown()
     }
     removeme();
 }
+void duplicate_key(string key,string value)
+{
+    ll dataval,nodeval,mindiff;
+    mindiff=INT_MAX;
+    struct node_data result;
+    int flag=0;
+    dataval=stoll(generate_md5(key).substr(0,8),0,16);
+    for(auto x:node_obj.leafset)
+        {
+            cout<<"leaf node is "<<x.port<<endl;
+            if(x.nodeid.compare("-1")!=0)
+            {
+                if(flag==0)
+                {
+                    nodeval = stoll(x.nodeid, 0, 16);
+                    cout<<"first leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
+                    // cout<<"data id is "<<D.nodeid<<" with int val "<<dataval<<endl;
+                    mindiff=abs(dataval-nodeval);
+                    cout<<"mindiff is "<<mindiff<<endl;
+                    result=node_data(x.nodeid,x.ip,x.port);
+                    flag=1;
+                }
+                else if(flag==1)
+                {
+                    nodeval = stoll(x.nodeid, 0, 16);   
+                    cout<<"leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
+                    if(mindiff>abs(dataval-nodeval))
+                    {
+                        cout<<"mindiff is "<<mindiff<<endl;
+                        mindiff=abs(dataval-nodeval);
+                        result=node_data(x.nodeid,x.ip,x.port);
+                        cout<<"result is "<<result.port<<endl;
+                    }
+                }
+            }
+            
+        }
 
+        sendrequest(key+" "+value,result.ip,result.port,7); 
+        //cout<<"with duplication"<<endl;
+}
 int main(int argc,char **argv)
 {
     
@@ -1134,6 +1205,7 @@ int main(int argc,char **argv)
             string key,value;
             cin>>key>>value;
             setkey(key,value);
+            duplicate_key(key,value);
 
         }
         if(choice.compare("printhash")==0)
