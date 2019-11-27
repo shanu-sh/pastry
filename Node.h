@@ -7,9 +7,12 @@
 #include <string>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+const std::string INV_IP = "-1";
+const std::string INV_PORT = "-2";
+const std::string INV_ID = "-3";
 
 class Node {
-private:
+public:
     friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version){
@@ -20,11 +23,11 @@ private:
     std::string ip;
     std::string port;
     std::string node_id;
-public:
-    Node():ip("-1"),port("-2"),node_id("-3"){}
+    Node():ip(INV_IP),port(INV_PORT),node_id(INV_ID){}
     Node(std::string, std::string);
-    void print_status();
+    bool operator < (const Node& rhs){return stoll(this->node_id, 0, 16) < stoll(rhs.node_id,0,16);}
+    bool operator > (const Node& rhs){return stoll(this->node_id, 0, 16) > stoll(rhs.node_id, 0, 16);}
+    bool operator == (const Node& rhs){return stoll(this->node_id, 0, 16) == stoll(rhs.node_id, 0, 16);}
 };
-
 
 #endif //PASTRY_NODE_H

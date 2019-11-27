@@ -13,8 +13,4 @@ Node::Node(std::string ip, std::string port){
     this->port = port;
     this->node_id = generate_md5(ip + port);//;.substr(0,b);
 }
-void Node::print_status(){
-    std::cout<<this->ip<<"\n";
-    std::cout<<this->port<<"\n";
-    std::cout<<this->node_id<<"\n";
-}
+

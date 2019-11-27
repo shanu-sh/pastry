@@ -3,19 +3,28 @@
 //
 #include <iostream>
 #include <string>
-#include "Node.h"
 #include "utils.h"
+#include "PastryNode.h"
 #include <fstream>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/set.hpp>
+#include <boost/serialization/vector.hpp>
 
-int main(){
+int main(int argc, char* argv[]){
+    if(argc != 2){
+        std::cerr<<"Usage: ./test.o <port_no>\n";
+        return 0;
+    }
     std::string ip;
     std::string port;
     ip = utils::extractPublicIP();
-    std::cin>>port;
-    Node n(ip, port);
-    n.print_status();
+    port = std::string(argv[1]);
+    PastryNode n(ip, port);
+    for(int i=0; i<4; i++){
+        n.routing_table.push_back(std::vector<Node>(4, Node()));
+    }
+    n.print_state();
 
     std::ofstream ofs("filename");
     {
@@ -23,7 +32,7 @@ int main(){
         oa << n;
     }
 
-    Node n2;
+    PastryNode n2;
     {
         // create and open an archive for input
         std::ifstream ifs("filename");
@@ -32,6 +41,6 @@ int main(){
         ia >> n2;
         // archive and stream closed when destructors are called
     }
-    n2.print_status();
+    n2.print_state();
     return 0;
 }
