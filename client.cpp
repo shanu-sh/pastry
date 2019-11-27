@@ -493,7 +493,7 @@ void processrequest(int cid)
 
                 node_obj.local_hashtable.erase(key);
                 //setkey(key,val);
-                sendrequest(key+" "+val,temp.ip,temp.port,7);
+                sendrequest(key+" "+val+" "+node_obj.ip+" "+node_obj.port,temp.ip,temp.port,9);
                 cout<<"key "<<key<<" is going away from me to "<<temp.port<<endl;
             }
         }
@@ -543,6 +543,25 @@ void processrequest(int cid)
                 }
             }
         }
+    }
+    else if(command==9)
+    {
+         //Received command to exit node
+        char BUFFER[BUFFSIZE];
+        recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
+        stringstream ss(BUFFER);
+        string key,value,ip,port;
+        ss>>key>>value>>ip>>port;
+        if(node_obj.local_hashtable.find(key)==node_obj.local_hashtable.end())
+        {
+            node_obj.local_hashtable[key]=value;
+            cout<<"Value setted \n";
+        }
+        else
+        {
+            sendrequest(key+" "+value,ip,port,7);
+        }
+        
     }
 }
 
