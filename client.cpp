@@ -102,6 +102,7 @@ void copy_to_routing_table(struct node_structure received_table);
 void sharetables();
 void getkey(string key, struct node_data temp_node);
 void setkey(string key,string value);
+void duplicate_key(string key,string value);
 
 vector<vector<struct node_data>> get_table()
 {
@@ -991,6 +992,7 @@ void setkey(string key,string value)
     {
         node_obj.local_hashtable[key]=value;
         cout<<"key set done"<<endl;
+        duplicate_key(key,value);
     }
     else{
         string msg=key+" "+value;
@@ -1104,6 +1106,7 @@ void duplicate_key(string key,string value)
     struct node_data result;
     int flag=0;
     dataval=stoll(generate_md5(key).substr(0,8),0,16);
+    cout<<"IN duplicate with key "<<key<<" "<< value<<"\n";
     for(auto x:node_obj.leafset)
         {
             cout<<"leaf node is "<<x.port<<endl;
@@ -1134,7 +1137,7 @@ void duplicate_key(string key,string value)
             }
             
         }
-
+        cout<<"In duplicate sending request to "<<result.ip<<" "<<result.port<<"\n";
         sendrequest(key+" "+value,result.ip,result.port,7); 
         //cout<<"with duplication"<<endl;
 }
@@ -1205,8 +1208,6 @@ int main(int argc,char **argv)
             string key,value;
             cin>>key>>value;
             setkey(key,value);
-            duplicate_key(key,value);
-
         }
         if(choice.compare("printhash")==0)
         {
