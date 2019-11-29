@@ -1017,6 +1017,7 @@ void setkey(string key,string value)
         string msg=key+" "+value;
         if(sendrequest(msg,final_key_des.ip,final_key_des.port,3)==-1)
         {
+            cout<<"Trying to set "<<key<<" "<<value<<"\n";
             setkey(key,value);
         }
     }
@@ -1076,6 +1077,7 @@ void shutdown()
     int flag=0;
     struct node_data result;
     cout<<"Shutting down node\n";
+    unordered_map<string,string> tempmap;
     for(auto y:node_obj.local_hashtable)
     {
         //cout<<y.first<<" "<<y.second<<"\n";
@@ -1084,13 +1086,13 @@ void shutdown()
         flag=0;
         for(auto x:node_obj.leafset)
         {
-           // cout<<"leaf node is "<<x.port<<endl;
+           cout<<"leaf node is "<<x.port<<endl;
             if(x.nodeid.compare("-1")!=0)
             {
                 if(flag==0)
                 {
                     nodeval = stoll(x.nodeid, 0, 16);
-                    //cout<<"first leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
+                    cout<<"first leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
                     // cout<<"data id is "<<D.nodeid<<" with int val "<<dataval<<endl;
                     mindiff=abs(dataval-nodeval);
                     //cout<<"mindiff is "<<mindiff<<endl;
@@ -1100,10 +1102,10 @@ void shutdown()
                 if(flag==1)
                 {
                     nodeval = stoll(x.nodeid, 0, 16);   
-                    //cout<<"leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
+                    cout<<"leafnode id is "<<x.nodeid<<" with int val "<<nodeval<<endl;
                     if(mindiff>abs(dataval-nodeval))
                     {
-                        //cout<<"mindiff is "<<mindiff<<endl;
+                        cout<<"mindiff is "<<mindiff<<endl;
                         mindiff=abs(dataval-nodeval);
                         result=node_data(x.nodeid,x.ip,x.port);
                     }
@@ -1112,9 +1114,20 @@ void shutdown()
             
         }
         //cout<<"key is going to"<<result.ip<<" "<<result.port<<endl;
-        sendrequest(y.first+" "+y.second,result.ip,result.port,7);
+
+        
+        if(sendrequest(y.first+" "+y.second,result.ip,result.port,7)==-1)
+        {
+            tempmap[y.first]=y.second;
+        }
+
         //node_obj.local_hashtable.erase(y.first);
         //cout<<"value sent\n";  
+    }
+    if(tempmap.empty()==false)
+    {
+        node_obj.local_hashtable=tempmap;
+        return shutdown();
     }
     //cout<<"Calling remove me\n";
     removeme();
