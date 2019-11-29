@@ -102,7 +102,7 @@ void copy_to_routing_table(struct node_structure received_table);
 void sharetables();
 void getkey(string key, struct node_data temp_node);
 void setkey(string key,string value);
-void duplicate_key(string key,string value);
+int duplicate_key(string key,string value);
 
 vector<vector<struct node_data>> get_table()
 {
@@ -562,6 +562,40 @@ void processrequest(int cid)
             sendrequest(key+" "+value,ip,port,7);
         }
         
+    }
+    else if(command==10)
+    {
+        //Received command to exit node
+        char BUFFER[BUFFSIZE];
+        recv(cid,( void*)&BUFFER,sizeof(BUFFER),0);
+        stringstream ss(BUFFER);
+        string key,value;
+        ss>>key>>value;
+        node_obj.local_hashtable[key]=value;
+        cout<<"Value setted is "<<key<<" "<<value<<"\n";
+        // while(duplicate_key(key,value)==-1)
+        // {
+        //     cout<<"Error while dupliacting trying to re duplicate\n";
+        // }
+        int flag=0;
+        while(1)
+        {
+            int i=duplicate_key(key,value);
+            if(i==100)
+            {
+                cout<<"Not creating duplicates only node left in the n/w\n";
+                flag=1;
+                break;
+            }
+            if(i!=-1)
+                break;
+        }
+        
+        if(flag==0)
+        { 
+            cout<<"Value duplicated while shutdown\n";
+            cout<<"Value duplicated is "<<key<<" "<<value<<"\n";
+        }
     }
 }
 
@@ -1066,8 +1100,10 @@ void removeme()
     {
         sendrequest(node_obj.nodeid,x.ip,x.port,8);
     }
-    cout<<"Bye...\n";
-    exit(1);
+
+
+    // cout<<"Bye...\n";
+    // exit(1);
 }
 
 void shutdown()
@@ -1078,6 +1114,9 @@ void shutdown()
     struct node_data result;
     cout<<"Shutting down node\n";
     unordered_map<string,string> tempmap;
+
+    removeme();
+
     for(auto y:node_obj.local_hashtable)
     {
         //cout<<y.first<<" "<<y.second<<"\n";
@@ -1116,7 +1155,7 @@ void shutdown()
         //cout<<"key is going to"<<result.ip<<" "<<result.port<<endl;
 
         
-        if(sendrequest(y.first+" "+y.second,result.ip,result.port,7)==-1)
+        if(sendrequest(y.first+" "+y.second,result.ip,result.port,10)==-1)
         {
             tempmap[y.first]=y.second;
         }
@@ -1129,14 +1168,14 @@ void shutdown()
         node_obj.local_hashtable=tempmap;
         return shutdown();
     }
-    //cout<<"Calling remove me\n";
-    removeme();
+    cout<<"Bye\n";
+    exit(1);
 }
-void duplicate_key(string key,string value)
+int duplicate_key(string key,string value)
 {
     ll dataval,nodeval,mindiff;
     mindiff=INT_MAX;
-    struct node_data result;
+    struct node_data result=getdefaul_node();
     int flag=0;
     dataval=stoll(generate_md5(key).substr(0,8),0,16);
     //cout<<"IN duplicate with key "<<key<<" "<< value<<"\n";
@@ -1170,8 +1209,10 @@ void duplicate_key(string key,string value)
             }
             
         }
+        if(result.nodeid.compare("-1")==0)
+            return 100;
         cout<<"In duplicate sending request to "<<result.ip<<" "<<result.port<<"\n";
-        sendrequest(key+" "+value,result.ip,result.port,7); 
+        return sendrequest(key+" "+value,result.ip,result.port,7); 
         //cout<<"with duplication"<<endl;
 }
 int main(int argc,char **argv)
